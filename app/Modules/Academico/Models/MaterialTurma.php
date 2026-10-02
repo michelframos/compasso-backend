@@ -22,8 +22,8 @@ class MaterialTurma extends Model
     public function scopeVisivelPara(Builder $query, User $user): Builder
     {
         return match ($user->role) {
-            'professor' => $query->whereHas('turma', fn (Builder $q) => $q->where('id_professor', $user->professor?->id)),
-            'aluno' => $query->whereHas('turma.matriculas', fn (Builder $q) => $q->where('id_aluno', $user->aluno?->id)),
+            'professor' => $query->whereHas('turma', fn (Builder $q) => $q->where('id_professor', $user->professor?->id ?? 0)),
+            'aluno' => $query->whereHas('turma.matriculas', fn (Builder $q) => $q->where('id_aluno', $user->aluno?->id ?? 0)),
             default => $query,
         };
     }

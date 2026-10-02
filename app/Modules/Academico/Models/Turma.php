@@ -85,10 +85,10 @@ class Turma extends Model
     public function scopeVisivelPara(Builder $query, User $user): Builder
     {
         return match ($user->role) {
-            'professor' => $query->where('id_professor', $user->professor?->id),
-            'aluno' => $query->whereHas('matriculas', fn (Builder $q) => $q->where('id_aluno', $user->aluno?->id)),
+            'professor' => $query->where('id_professor', $user->professor?->id ?? 0),
+            'aluno' => $query->whereHas('matriculas', fn (Builder $q) => $q->where('id_aluno', $user->aluno?->id ?? 0)),
             'responsavel' => $query->whereHas('matriculas.aluno.responsaveis', fn (Builder $q) => $q
-                ->where('responsaveis_alunos.id_responsavel', $user->responsavel?->id)),
+                ->where('responsaveis_alunos.id_responsavel', $user->responsavel?->id ?? 0)),
             default => $query,
         };
     }

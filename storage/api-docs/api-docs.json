@@ -256,6 +256,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Aula de turma que o professor não leciona"
                     }
                 },
                 "security": [
@@ -1373,6 +1376,254 @@
                 ]
             }
         },
+        "/api/professor/me": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Dados do professor autenticado (área do professor)",
+                "operationId": "2900f9898847be5d4a93d9d61fa6df6a",
+                "responses": {
+                    "200": {
+                        "description": "Professor autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProfessorAutenticadoResource"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Usuário não é professor desta instituição ou precisa trocar a senha"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/painel": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Painel inicial do professor: aulas de hoje e da semana, chamadas pendentes e contadores",
+                "operationId": "6da1d00accb08f27d3a1984de4b0bded",
+                "responses": {
+                    "200": {
+                        "description": "Painel do professor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "data_referencia": {
+                                                    "type": "string",
+                                                    "format": "date",
+                                                    "example": "2026-10-01"
+                                                },
+                                                "inicio_semana": {
+                                                    "type": "string",
+                                                    "format": "date",
+                                                    "example": "2026-09-28"
+                                                },
+                                                "fim_semana": {
+                                                    "type": "string",
+                                                    "format": "date",
+                                                    "example": "2026-10-04"
+                                                },
+                                                "contadores": {
+                                                    "properties": {
+                                                        "aulas_hoje": {
+                                                            "type": "integer",
+                                                            "example": 2
+                                                        },
+                                                        "aulas_semana": {
+                                                            "type": "integer",
+                                                            "example": 9
+                                                        },
+                                                        "chamadas_pendentes": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "turmas_ativas": {
+                                                            "type": "integer",
+                                                            "example": 4
+                                                        },
+                                                        "alunos_ativos": {
+                                                            "type": "integer",
+                                                            "example": 27
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "aulas_hoje": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/AulaDoProfessorResource"
+                                                    }
+                                                },
+                                                "aulas_semana": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/AulaDoProfessorResource"
+                                                    }
+                                                },
+                                                "chamadas_pendentes": {
+                                                    "description": "Até 20 aulas passadas (mais recentes primeiro) com status agendada ou sem presenças",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/AulaDoProfessorResource"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Usuário não é professor desta instituição ou precisa trocar a senha"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/turmas": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Turmas do professor autenticado, com horários e total de alunos ativos",
+                "operationId": "d047a9f243dd0ed51d229d5e5ce49391",
+                "parameters": [
+                    {
+                        "name": "situacao",
+                        "in": "query",
+                        "description": "ativas (padrão), encerradas (concluídas/canceladas) ou todas",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ativas",
+                                "encerradas",
+                                "todas"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Busca por descrição, curso ou nível",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Turmas do professor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/TurmaDoProfessorResource"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Usuário não é professor desta instituição ou precisa trocar a senha"
+                    },
+                    "422": {
+                        "description": "Filtro inválido"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/turmas/{turma}": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Detalhe de uma turma do professor (horários e alunos matriculados)",
+                "operationId": "aca42065ca528e1b98104ff4eb0f66a6",
+                "parameters": [
+                    {
+                        "name": "turma",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Turma",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/TurmaDoProfessorResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Turma de outro professor"
+                    },
+                    "404": {
+                        "description": "Turma não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/turmas": {
             "get": {
                 "tags": [
@@ -2056,6 +2307,76 @@
                 }
             }
         },
+        "/api/assinatura/planos": {
+            "get": {
+                "tags": [
+                    "Assinatura"
+                ],
+                "summary": "Lista planos ativos para solicitação",
+                "operationId": "7a57a81e94274fe1a136893778983ffb",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/assinatura/solicitacao": {
+            "get": {
+                "tags": [
+                    "Assinatura"
+                ],
+                "summary": "Retorna a solicitação pendente da instituição atual",
+                "operationId": "35c7235f9ac9e52e461459636bc80efd",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/assinatura/solicitar": {
+            "post": {
+                "tags": [
+                    "Assinatura"
+                ],
+                "summary": "Solicita ativação de um plano",
+                "operationId": "5afcf9da66a47eb557cce48b3bb7d39c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SolicitarAssinaturaRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Solicitação criada"
+                    },
+                    "422": {
+                        "description": "Validação"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/register": {
             "post": {
                 "tags": [
@@ -2095,7 +2416,7 @@
                 "tags": [
                     "Core"
                 ],
-                "summary": "Login de usuário",
+                "summary": "Login no painel da escola",
                 "operationId": "bd4b057d2ca093031394bc233aaca04d",
                 "requestBody": {
                     "required": true,
@@ -2103,6 +2424,45 @@
                         "application/json": {
                             "schema": {
                                 "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login realizado com sucesso"
+                    },
+                    "401": {
+                        "description": "Credenciais inválidas"
+                    },
+                    "403": {
+                        "description": "Sem acesso à instituição ou assinatura bloqueada"
+                    },
+                    "404": {
+                        "description": "Instituição não encontrada"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    },
+                    "429": {
+                        "description": "Muitas tentativas; aguarde para tentar novamente"
+                    }
+                }
+            }
+        },
+        "/api/platform/login": {
+            "post": {
+                "tags": [
+                    "Core"
+                ],
+                "summary": "Login do super admin no painel da plataforma",
+                "operationId": "b5ee17e313e9aaca1a785fd5bc3c8e2c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PlatformLoginRequest"
                             }
                         }
                     }
@@ -2269,6 +2629,49 @@
                 ]
             }
         },
+        "/api/me/senha": {
+            "put": {
+                "tags": [
+                    "Core"
+                ],
+                "summary": "Alterar a senha do usuário autenticado",
+                "description": "Também conclui a troca obrigatória de senha do primeiro acesso. As demais sessões do usuário são encerradas.",
+                "operationId": "ffff58e57f7563b6d599c10c0e8e599e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AlterarSenhaRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Senha alterada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResource"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/forgot-password": {
             "post": {
                 "tags": [
@@ -2349,6 +2752,191 @@
                     },
                     "403": {
                         "description": "Acesso negado (não é super-admin)"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/platform/configuracoes": {
+            "get": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Configurações editáveis da plataforma (gratuidade e e-mail de cadastro)",
+                "operationId": "f153f114b7286a6f4785cc90a8e70df6",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Acesso negado (não é super-admin)"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Atualizar configurações da plataforma",
+                "operationId": "9e9a602bfe06c211b43a86b7170a238b",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Acesso negado (não é super-admin)"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/platform/depoimentos": {
+            "get": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Listar depoimentos (platform)",
+                "operationId": "ad9c28cb13d84db1e47e3bf02372db50",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Criar depoimento (sempre pendente)",
+                "operationId": "f4308ab38c4aeb32a7073f0799338508",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StorePlatformDepoimentoRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/platform/depoimentos/{id}": {
+            "get": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Exibir depoimento (platform)",
+                "operationId": "ee09b6b2e820385e5c0df11d23fe9a7d",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Atualizar depoimento (não publica)",
+                "operationId": "d1dbfe393396197471ca5d9f62af26b1",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Excluir depoimento",
+                "operationId": "e8f3f0cf858e118a493381f5a88b9aae",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/platform/depoimentos/{id}/aprovar": {
+            "post": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Aprovar depoimento para o site",
+                "operationId": "49710ae929b8b15d109b0c23dd444906",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/platform/depoimentos/{id}/ocultar": {
+            "post": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Ocultar depoimento do site",
+                "operationId": "0e9af05967442609f43d467e6e22ec9e",
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     }
                 },
                 "security": [
@@ -2673,6 +3261,329 @@
                         "sanctum": []
                     }
                 ]
+            }
+        },
+        "/api/platform/modulos": {
+            "get": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Listar módulos do site (platform)",
+                "operationId": "eb6da211a2741496d9f18369bb2b8ff8",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Criar módulo do site (sempre pendente)",
+                "operationId": "7ee823ae45d44195d57996bf4bda1a75",
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/platform/modulos/{id}": {
+            "get": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Exibir módulo do site",
+                "operationId": "4dd780422bdfa11b90863beb69fc980f",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Atualizar módulo do site (não publica)",
+                "operationId": "7c1b1ec74927376ea301bdf1456dc1a9",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Excluir módulo do site",
+                "operationId": "c5a1cab0193ae79026bc6de95ea0099b",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/platform/modulos/{id}/aprovar": {
+            "post": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Aprovar módulo para o site",
+                "operationId": "d66b5cdb932c93338c1db0153e3a8cb0",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/platform/modulos/{id}/ocultar": {
+            "post": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Ocultar módulo do site",
+                "operationId": "ab4668ca580d3a4f9be1cca1e7fecd11",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/platform/solicitacoes": {
+            "get": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Lista solicitações de assinatura",
+                "operationId": "9f79b67f7f76efced5389b1131b07275",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/platform/solicitacoes/{solicitacao}/aprovar": {
+            "post": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Aprova solicitação e ativa plano na instituição",
+                "operationId": "e10b44fd01ceef967f7de6a76230728c",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/platform/solicitacoes/{solicitacao}/rejeitar": {
+            "post": {
+                "tags": [
+                    "Platform"
+                ],
+                "summary": "Rejeita solicitação de assinatura",
+                "operationId": "5d03905fdb212cad431d7b08deec8dce",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/public/planos": {
+            "get": {
+                "tags": [
+                    "Public"
+                ],
+                "summary": "Lista planos ativos (público)",
+                "operationId": "2674423960d41cc803ddd7297f686c53",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/public/depoimentos": {
+            "get": {
+                "tags": [
+                    "Public"
+                ],
+                "summary": "Lista depoimentos aprovados (público)",
+                "operationId": "2e9073cb16ce7881ebd0b8dcc874b651",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/public/modulos": {
+            "get": {
+                "tags": [
+                    "Public"
+                ],
+                "summary": "Lista módulos aprovados do site (público)",
+                "operationId": "c05ac534147c42c4669eed44fe7a66d1",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/public/config": {
+            "get": {
+                "tags": [
+                    "Public"
+                ],
+                "summary": "Configurações públicas do site",
+                "operationId": "4da8a87a3ba401c4ad0d810db5920464",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/api/public/signup": {
+            "post": {
+                "tags": [
+                    "Public"
+                ],
+                "summary": "Cadastro self-service (trial)",
+                "operationId": "7911e4f2003bd8eafdc758adb8bf35a8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PublicSignupRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Conta criada"
+                    },
+                    "422": {
+                        "description": "Validação"
+                    },
+                    "429": {
+                        "description": "Rate limit"
+                    }
+                }
+            }
+        },
+        "/api/registrar-escola": {
+            "post": {
+                "tags": [
+                    "Core"
+                ],
+                "summary": "Cadastro de nova escola pela tela de login (exige ativação no primeiro acesso)",
+                "operationId": "8ab9728bd8a2c4e78e9bc829d585cee4",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegistrarEscolaRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Conta criada; código de ativação enviado por e-mail"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    },
+                    "429": {
+                        "description": "Rate limit"
+                    }
+                }
+            }
+        },
+        "/api/ativacao/reenviar": {
+            "post": {
+                "tags": [
+                    "Core"
+                ],
+                "summary": "Reenviar o código de ativação da escola",
+                "operationId": "07acded5b1b04d8f0ffecc3fbbb00258",
+                "responses": {
+                    "200": {
+                        "description": "Código reenviado"
+                    },
+                    "401": {
+                        "description": "Credenciais inválidas"
+                    },
+                    "409": {
+                        "description": "Escola já ativada"
+                    },
+                    "503": {
+                        "description": "Falha ao enviar o e-mail"
+                    }
+                }
             }
         },
         "/api/users": {
@@ -4693,6 +5604,44 @@
                 ]
             }
         },
+        "/api/professores/{id}/enviar-acesso": {
+            "post": {
+                "tags": [
+                    "Pessoas"
+                ],
+                "summary": "Enviar ao professor o código para definir/redefinir a senha de acesso",
+                "operationId": "525432eb10e39712c4440095fc171f54",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Código de acesso enviado por e-mail"
+                    },
+                    "403": {
+                        "description": "Perfil sem permissão"
+                    },
+                    "404": {
+                        "description": "Professor não encontrado"
+                    },
+                    "422": {
+                        "description": "Professor sem e-mail cadastrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/alunos/{aluno}/responsaveis": {
             "get": {
                 "tags": [
@@ -6010,6 +6959,145 @@
                 },
                 "type": "object"
             },
+            "AlunoDaTurmaResource": {
+                "title": "AlunoDaTurmaResource",
+                "description": "Matrícula de um aluno na turma, com os dados de contato visíveis ao professor",
+                "properties": {
+                    "id": {
+                        "description": "ID da matrícula",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "id_aluno": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "id_turma": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "ativa"
+                    },
+                    "data": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-02-01",
+                        "nullable": true
+                    },
+                    "aluno": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 5
+                            },
+                            "usuario": {
+                                "properties": {
+                                    "nome": {
+                                        "type": "string",
+                                        "example": "Bruno Souza"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "bruno@email.com",
+                                        "nullable": true
+                                    },
+                                    "telefone": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "foto": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "AulaDoProfessorResource": {
+                "title": "AulaDoProfessorResource",
+                "description": "Aula vista pelo professor (sem snapshots financeiros), com os alunos ativos da turma para a chamada",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "id_turma": {
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    },
+                    "id_professor": {
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    },
+                    "data": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-10-01"
+                    },
+                    "hora_inicio": {
+                        "type": "string",
+                        "example": "14:00:00"
+                    },
+                    "hora_termino": {
+                        "type": "string",
+                        "example": "15:00:00"
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "agendada",
+                        "nullable": true
+                    },
+                    "tipo": {
+                        "type": "string",
+                        "example": "regular"
+                    },
+                    "conteudo_dado": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "presencas_count": {
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "turma": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/TurmaDoProfessorResource"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "aluno_especifico": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 3
+                            },
+                            "usuario": {
+                                "properties": {
+                                    "nome": {
+                                        "type": "string",
+                                        "example": "Carla Dias"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
             "CursoResource": {
                 "properties": {
                     "id": {
@@ -6184,6 +7272,126 @@
                         "type": "string",
                         "example": "Desenvolver.",
                         "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ProfessorAutenticadoResource": {
+                "title": "ProfessorAutenticadoResource",
+                "description": "Dados do professor autenticado na instituição ativa",
+                "properties": {
+                    "id": {
+                        "description": "ID do cadastro de professor",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "id_usuario": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "nome": {
+                        "type": "string",
+                        "example": "Ana Lima"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "ana@escola.com"
+                    },
+                    "foto": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "telefone": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "whatsapp": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "TurmaDoProfessorResource": {
+                "title": "TurmaDoProfessorResource",
+                "description": "Turma vista pelo professor (sem valores financeiros)",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "id_curso": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "id_nivel": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "id_professor": {
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    },
+                    "descricao": {
+                        "type": "string",
+                        "example": "Violão Iniciante - Sábado",
+                        "nullable": true
+                    },
+                    "observacoes": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "em_andamento"
+                    },
+                    "maximo_alunos": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "data_inicio": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "data_fim": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "alunos_ativos_count": {
+                        "type": "integer",
+                        "example": 6
+                    },
+                    "curso": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/CursoResource"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "nivel": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/NivelResource"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "horarios": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TurmaHorarioResource"
+                        }
+                    },
+                    "matriculas": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AlunoDaTurmaResource"
+                        }
                     }
                 },
                 "type": "object"
@@ -6910,6 +8118,22 @@
                 },
                 "type": "object"
             },
+            "SolicitarAssinaturaRequest": {
+                "required": [
+                    "id_plano_assinatura"
+                ],
+                "properties": {
+                    "id_plano_assinatura": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "observacao": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
             "ForgotPasswordRequest": {
                 "title": "Forgot Password Request",
                 "description": "Request para enviar cÃ³digo de recuperaÃ§Ã£o de senha",
@@ -6927,10 +8151,11 @@
             },
             "LoginRequest": {
                 "title": "Login Request",
-                "description": "Login request body data",
+                "description": "Login no painel da escola. Informe tenant_cnpj (ou, alternativamente, tenant_slug).",
                 "required": [
                     "email",
-                    "password"
+                    "password",
+                    "tenant_cnpj"
                 ],
                 "properties": {
                     "email": {
@@ -6943,10 +8168,41 @@
                         "format": "password",
                         "example": "password"
                     },
+                    "tenant_cnpj": {
+                        "type": "string",
+                        "example": "11.222.333/0001-81"
+                    },
                     "tenant_slug": {
                         "type": "string",
                         "example": "default",
                         "nullable": true
+                    },
+                    "activation_code": {
+                        "description": "Código de ativação exigido no primeiro acesso de escolas cadastradas pela tela de login",
+                        "type": "string",
+                        "example": "123456",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "PlatformLoginRequest": {
+                "title": "Platform Login Request",
+                "description": "Login do super admin no painel da plataforma",
+                "required": [
+                    "email",
+                    "password"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "super@compasso.local"
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password",
+                        "example": "password"
                     }
                 },
                 "type": "object"
@@ -7008,6 +8264,43 @@
                 },
                 "type": "object"
             },
+            "RegistrarEscolaRequest": {
+                "required": [
+                    "nome_fantasia",
+                    "cnpj",
+                    "responsavel_nome",
+                    "email",
+                    "password",
+                    "password_confirmation"
+                ],
+                "properties": {
+                    "nome_fantasia": {
+                        "type": "string",
+                        "example": "Escola Harmonia"
+                    },
+                    "cnpj": {
+                        "type": "string",
+                        "example": "11.222.333/0001-81"
+                    },
+                    "responsavel_nome": {
+                        "type": "string",
+                        "example": "Maria Silva"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password"
+                    },
+                    "password_confirmation": {
+                        "type": "string",
+                        "format": "password"
+                    }
+                },
+                "type": "object"
+            },
             "ResetPasswordRequest": {
                 "title": "Reset Password Request",
                 "description": "Request para alterar a senha com o token",
@@ -7040,10 +8333,48 @@
                 },
                 "type": "object"
             },
+            "StorePlatformDepoimentoRequest": {
+                "required": [
+                    "nome",
+                    "cargo",
+                    "escola",
+                    "conteudo"
+                ],
+                "properties": {
+                    "nome": {
+                        "type": "string",
+                        "example": "Carla Mendes"
+                    },
+                    "cargo": {
+                        "type": "string",
+                        "example": "Diretora"
+                    },
+                    "escola": {
+                        "type": "string",
+                        "example": "Escola Harmonia"
+                    },
+                    "conteudo": {
+                        "type": "string"
+                    },
+                    "avatar_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "ordem": {
+                        "type": "integer",
+                        "example": 0
+                    }
+                },
+                "type": "object"
+            },
             "StorePlatformInstituicaoRequest": {
                 "required": [
                     "slug",
-                    "nome_fantasia"
+                    "nome_fantasia",
+                    "cnpj",
+                    "admin_nome",
+                    "admin_email",
+                    "admin_password"
                 ],
                 "properties": {
                     "slug": {
@@ -7060,7 +8391,7 @@
                     },
                     "cnpj": {
                         "type": "string",
-                        "nullable": true
+                        "example": "11.222.333/0001-81"
                     },
                     "id_plano_assinatura": {
                         "type": "integer",
@@ -7096,6 +8427,27 @@
                             "i",
                             "s"
                         ]
+                    },
+                    "admin_nome": {
+                        "type": "string",
+                        "example": "Maria Silva"
+                    },
+                    "admin_email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "admin@escola.com"
+                    },
+                    "admin_password": {
+                        "type": "string",
+                        "format": "password"
+                    },
+                    "admin_password_confirmation": {
+                        "type": "string",
+                        "format": "password"
+                    },
+                    "admin_cpf": {
+                        "type": "string",
+                        "nullable": true
                     }
                 },
                 "type": "object"
@@ -7129,9 +8481,129 @@
                         "example": 500,
                         "nullable": true
                     },
+                    "modulos": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "leads",
+                            "financeiro"
+                        ]
+                    },
                     "ativo": {
                         "type": "boolean",
                         "example": true
+                    }
+                },
+                "type": "object"
+            },
+            "StorePlatformSiteModuloRequest": {
+                "required": [
+                    "nome",
+                    "descricao"
+                ],
+                "properties": {
+                    "nome": {
+                        "type": "string"
+                    },
+                    "descricao": {
+                        "type": "string"
+                    },
+                    "recursos": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "icone": {
+                        "type": "string"
+                    },
+                    "ordem": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
+            "PublicSignupRequest": {
+                "required": [
+                    "slug",
+                    "nome_fantasia",
+                    "cnpj",
+                    "admin_nome",
+                    "admin_email",
+                    "admin_password",
+                    "admin_password_confirmation"
+                ],
+                "properties": {
+                    "slug": {
+                        "type": "string",
+                        "example": "escola-harmonia"
+                    },
+                    "nome_fantasia": {
+                        "type": "string",
+                        "example": "Escola Harmonia"
+                    },
+                    "cnpj": {
+                        "type": "string",
+                        "example": "11.222.333/0001-81"
+                    },
+                    "admin_nome": {
+                        "type": "string",
+                        "example": "Maria Silva"
+                    },
+                    "admin_email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "admin_password": {
+                        "type": "string",
+                        "format": "password"
+                    },
+                    "admin_password_confirmation": {
+                        "type": "string",
+                        "format": "password"
+                    },
+                    "plano_slug": {
+                        "type": "string",
+                        "example": "profissional",
+                        "nullable": true
+                    },
+                    "id_plano_assinatura": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "website": {
+                        "description": "Honeypot — deve ficar vazio",
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "AlterarSenhaRequest": {
+                "title": "Alterar Senha Request",
+                "description": "Troca da senha do usuário autenticado",
+                "required": [
+                    "senha_atual",
+                    "password",
+                    "password_confirmation"
+                ],
+                "properties": {
+                    "senha_atual": {
+                        "type": "string",
+                        "format": "password",
+                        "example": "SenhaAtual123"
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password",
+                        "example": "NovaSenha123"
+                    },
+                    "password_confirmation": {
+                        "type": "string",
+                        "format": "password",
+                        "example": "NovaSenha123"
                     }
                 },
                 "type": "object"
@@ -7264,6 +8736,66 @@
                     },
                     "status": {
                         "type": "string"
+                    },
+                    "assinatura_status": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "trial_ends_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "id_plano_assinatura": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "limite_alunos": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "modulos": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "em_trial": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "PlatformDepoimentoResource": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "nome": {
+                        "type": "string"
+                    },
+                    "cargo": {
+                        "type": "string"
+                    },
+                    "escola": {
+                        "type": "string"
+                    },
+                    "conteudo": {
+                        "type": "string"
+                    },
+                    "avatar_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "ordem": {
+                        "type": "integer"
+                    },
+                    "aprovado": {
+                        "type": "boolean"
+                    },
+                    "aprovado_em": {
+                        "type": "string",
+                        "nullable": true
                     }
                 },
                 "type": "object"
@@ -7328,11 +8860,50 @@
                         "type": "integer",
                         "nullable": true
                     },
+                    "modulos": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
                     "ativo": {
                         "type": "boolean"
                     },
                     "instituicoes_count": {
                         "type": "integer",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "PlatformSiteModuloResource": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "nome": {
+                        "type": "string"
+                    },
+                    "descricao": {
+                        "type": "string"
+                    },
+                    "recursos": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "icone": {
+                        "type": "string"
+                    },
+                    "ordem": {
+                        "type": "integer"
+                    },
+                    "aprovado": {
+                        "type": "boolean"
+                    },
+                    "aprovado_em": {
+                        "type": "string",
                         "nullable": true
                     }
                 },
@@ -7365,6 +8936,11 @@
                     },
                     "is_super_admin": {
                         "description": "Super-admin da plataforma",
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "deve_trocar_senha": {
+                        "description": "Exige troca de senha antes de acessar a área do usuário",
                         "type": "boolean",
                         "example": false
                     },
@@ -7430,6 +9006,11 @@
                         "type": "string",
                         "example": "admin"
                     },
+                    "deve_trocar_senha": {
+                        "description": "Exige troca de senha no próximo acesso",
+                        "type": "boolean",
+                        "example": false
+                    },
                     "telefone": {
                         "description": "Telefone",
                         "type": "string",
@@ -7468,6 +9049,23 @@
                         "description": "Documentação OpenAPI do painel Platform (super-admin).\nEndpoints em /api/platform/* exigem Bearer token e is_super_admin = true.\nNão enviar o header X-Tenant-Slug nestas rotas.",
                         "type": "integer",
                         "example": 14
+                    },
+                    "modulos_app": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "key": {
+                                    "type": "string"
+                                },
+                                "label": {
+                                    "type": "string"
+                                },
+                                "descricao": {
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        }
                     }
                 },
                 "type": "object"
@@ -9526,6 +11124,14 @@
         {
             "name": "Platform",
             "description": "Painel super-admin: CRUD de escolas e planos, trial customizado, impersonação de usuários. Requer auth:sanctum + middleware super_admin. Não usar X-Tenant-Slug."
+        },
+        {
+            "name": "Assinatura",
+            "description": "Assinatura"
+        },
+        {
+            "name": "Public",
+            "description": "Public"
         }
     ]
 }

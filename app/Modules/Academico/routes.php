@@ -6,6 +6,9 @@ use App\Modules\Academico\Http\Controllers\CursoController;
 use App\Modules\Academico\Http\Controllers\MaterialTurmaController;
 use App\Modules\Academico\Http\Controllers\MatriculaController;
 use App\Modules\Academico\Http\Controllers\NivelController;
+use App\Modules\Academico\Http\Controllers\ProfessorMeController;
+use App\Modules\Academico\Http\Controllers\ProfessorPainelController;
+use App\Modules\Academico\Http\Controllers\ProfessorTurmaController;
 use App\Modules\Academico\Http\Controllers\TurmaController;
 use App\Modules\Academico\Http\Controllers\TurmaHorarioController;
 use Illuminate\Support\Facades\Route;
@@ -15,7 +18,14 @@ use Illuminate\Support\Facades\Route;
 | Prefixadas com /api pelo AcademicoServiceProvider.
 */
 
-Route::middleware(['auth:sanctum', 'ensure.instituicao.membership'])->group(function () {
+Route::middleware(['auth:sanctum', 'ensure.instituicao.membership', 'ensure.senha.atualizada'])->group(function () {
+    Route::middleware(['role:professor', 'ensure.perfil.professor'])->prefix('professor/me')->group(function () {
+        Route::get('/', [ProfessorMeController::class, 'show']);
+        Route::get('painel', [ProfessorPainelController::class, 'show']);
+        Route::get('turmas', [ProfessorTurmaController::class, 'index']);
+        Route::get('turmas/{turma}', [ProfessorTurmaController::class, 'show']);
+    });
+
     Route::middleware('role:secretaria,admin')->group(function () {
         Route::apiResource('cursos', CursoController::class);
         Route::apiResource('niveis', NivelController::class);

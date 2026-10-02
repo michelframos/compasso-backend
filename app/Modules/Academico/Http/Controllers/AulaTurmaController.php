@@ -45,7 +45,8 @@ class AulaTurmaController extends Controller
     )]
     public function index(Request $request)
     {
-        $query = AulaTurma::with(['turma.curso', 'turma.nivel', 'turma.matriculas.aluno.usuario', 'professor.usuario', 'aluno_especifico.usuario', 'curso', 'nivel', 'conta']);
+        $query = AulaTurma::with(['turma.curso', 'turma.nivel', 'turma.matriculas.aluno.usuario', 'professor.usuario', 'aluno_especifico.usuario', 'curso', 'nivel', 'conta'])
+            ->visivelPara($request->user());
 
         if ($request->has('data_inicio')) {
             $query->where('data', '>=', $request->data_inicio);
@@ -135,11 +136,14 @@ class AulaTurmaController extends Controller
                 response: 200,
                 description: "Detalhes da aula",
                 content: new OA\JsonContent(ref: "#/components/schemas/AulaTurma")
-            )
+            ),
+            new OA\Response(response: 403, description: "Aula de turma que o professor não leciona")
         ]
     )]
     public function show(AulaTurma $aulaTurma)
     {
+        Gate::authorize('view', $aulaTurma);
+
         return new AulaTurmaResource($aulaTurma->load(['turma.matriculas.aluno.usuario', 'turma.curso', 'turma.nivel', 'professor', 'conta']));
     }
 

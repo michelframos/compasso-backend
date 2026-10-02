@@ -31,8 +31,11 @@ class ResetPasswordUseCase
             throw new HttpException(404, 'Usuário não encontrado');
         }
 
-        $this->users->update($user, ['password' => $password]);
+        DB::transaction(function () use ($user, $password, $email): void {
+            $this->users->update($user, ['password' => $password, 'deve_trocar_senha' => false]);
+            $user->tokens()->delete();
 
-        DB::table('password_reset_tokens')->where('email', $email)->delete();
+            DB::table('password_reset_tokens')->where('email', $email)->delete();
+        });
     }
 }

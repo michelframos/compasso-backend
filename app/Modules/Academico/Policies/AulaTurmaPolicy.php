@@ -11,6 +11,19 @@ class AulaTurmaPolicy
 {
     use VerificaVinculos;
 
+    /** Mesma regra do escopo `AulaTurma::visivelPara`: professor da aula ou da turma. */
+    public function view(User $user, AulaTurma $aula): Response
+    {
+        if ($user->role !== 'professor') {
+            return Response::allow();
+        }
+
+        return $this->permitirSe(
+            $this->lecionaPara($user, $aula->id_professor) || $this->lecionaPara($user, $aula->turma?->id_professor),
+            'Acesso restrito: Você não leciona nesta aula.'
+        );
+    }
+
     public function viewPresencas(User $user, AulaTurma $aula): Response
     {
         return $this->somenteProfessorDaAula($user, $aula, 'Acesso restrito: Você não leciona nesta turma.');

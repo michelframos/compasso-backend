@@ -102,7 +102,7 @@ class MaterialTurmaController extends Controller
     )]
     public function show($id)
     {
-        $material = MaterialTurma::with('turma')->findOrFail($id);
+        $material = MaterialTurma::with('turma')->visivelPara(request()->user())->findOrFail($id);
         return new MaterialTurmaResource($material);
     }
 
@@ -134,7 +134,7 @@ class MaterialTurmaController extends Controller
     )]
     public function update(UpdateMaterialTurmaRequest $request, $id)
     {
-        $material = MaterialTurma::findOrFail($id);
+        $material = MaterialTurma::visivelPara($request->user())->findOrFail($id);
         $data = $request->validated();
 
         if ($request->hasFile('file')) {
@@ -203,7 +203,7 @@ class MaterialTurmaController extends Controller
     public function getByTurma($turmaId)
     {
         Turma::findOrFail($turmaId);
-        $materiais = MaterialTurma::where('id_turma', $turmaId)->get();
+        $materiais = MaterialTurma::where('id_turma', $turmaId)->visivelPara(request()->user())->get();
         return MaterialTurmaResource::collection($materiais);
     }
 }

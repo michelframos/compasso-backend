@@ -23,6 +23,7 @@ class DeleteProfessorUseCase
             $user = $professor->usuario;
             $professor->delete();
             if ($user) {
+                $user->tokens()->delete();
                 $this->users->delete($user);
             }
         });

@@ -22,8 +22,12 @@ use App\Modules\Core\Repositories\SiteModuloRepository;
 use App\Modules\Core\Repositories\UserRepository;
 use App\Modules\Core\Support\CachedPlanoEntitlementResolver;
 use App\Modules\Core\Support\PlanoEntitlementResolver;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use App\Modules\Core\Models\PersonalAccessToken;
 
@@ -57,6 +61,9 @@ class CoreServiceProvider extends ServiceProvider
         Instituicao::observe(InstituicaoEntitlementObserver::class);
         ConfiguracaoEmpresa::observe(InstituicaoEntitlementObserver::class);
         PlanoAssinatura::observe(PlanoAssinaturaEntitlementObserver::class);
+
+        RateLimiter::for('login', fn (Request $request) => Limit::perMinute(5)
+            ->by(Str::lower((string) $request->input('email')).'|'.$request->ip()));
 
         Route::middleware('api')
             ->prefix('api')

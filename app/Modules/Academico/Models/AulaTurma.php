@@ -3,6 +3,8 @@
 namespace App\Modules\Academico\Models;
 
 use App\Modules\Core\Models\Concerns\PertenceAInstituicao;
+use App\Modules\Core\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -86,5 +88,39 @@ class AulaTurma extends Model
     public function conta()
     {
         return $this->hasOne(\App\Models\Conta::class, 'id_aula_turma');
+    }
+
+    /** Sem o cadastro do perfil, o id 0 garante lista vazia (where com null viraria IS NULL). */
+    public function scopeVisivelPara(Builder $query, User $user): Builder
+    {
+        return match ($user->role) {
+            'professor' => $this->doProfessor($query, $user->professor?->id ?? 0),
+            'aluno' => $this->doAluno($query, $user->aluno?->id ?? 0),
+            'responsavel' => $this->doResponsavel($query, $user->responsavel?->id ?? 0),
+            default => $query,
+        };
+    }
+
+    private function doProfessor(Builder $query, int $professorId): Builder
+    {
+        return $query->where(fn (Builder $q) => $q
+            ->where('id_professor', $professorId)
+            ->orWhereHas('turma', fn (Builder $t) => $t->where('id_professor', $professorId)));
+    }
+
+    private function doAluno(Builder $query, int $alunoId): Builder
+    {
+        return $query->where(fn (Builder $q) => $q
+            ->where('id_aluno_especifico', $alunoId)
+            ->orWhereHas('turma.matriculas', fn (Builder $m) => $m->where('id_aluno', $alunoId)));
+    }
+
+    private function doResponsavel(Builder $query, int $responsavelId): Builder
+    {
+        $doResponsavel = fn (Builder $r) => $r->where('responsaveis_alunos.id_responsavel', $responsavelId);
+
+        return $query->where(fn (Builder $q) => $q
+            ->whereHas('aluno_especifico.responsaveis', $doResponsavel)
+            ->orWhereHas('turma.matriculas.aluno.responsaveis', $doResponsavel));
     }
 }

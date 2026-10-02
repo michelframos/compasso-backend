@@ -21,6 +21,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'resolve.instituicao' => \App\Modules\Core\Http\Middleware\ResolveInstituicao::class,
             'ensure.instituicao.membership' => \App\Modules\Core\Http\Middleware\EnsureInstituicaoMembership::class,
             'ensure.plano.modulo' => \App\Modules\Core\Http\Middleware\EnsurePlanoModulo::class,
+            'ensure.senha.atualizada' => \App\Modules\Core\Http\Middleware\EnsureSenhaAtualizada::class,
+            'ensure.perfil.professor' => \App\Modules\Pessoas\Http\Middleware\EnsurePerfilProfessor::class,
             'super_admin' => \App\Modules\Core\Http\Middleware\EnsureSuperAdmin::class,
         ]);
     })

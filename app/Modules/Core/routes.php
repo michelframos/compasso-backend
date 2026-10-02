@@ -13,6 +13,7 @@ use App\Modules\Core\Http\Controllers\PlatformPlanoAssinaturaController;
 use App\Modules\Core\Http\Controllers\PlatformSiteModuloController;
 use App\Modules\Core\Http\Controllers\PlatformSolicitacaoAssinaturaController;
 use App\Modules\Core\Http\Controllers\LocalidadeController;
+use App\Modules\Core\Http\Controllers\MeController;
 use App\Modules\Core\Http\Controllers\PasswordResetController;
 use App\Modules\Core\Http\Controllers\PublicController;
 use App\Modules\Core\Http\Controllers\RegistroEscolaController;
@@ -40,15 +41,18 @@ Route::post('/registrar-escola', [RegistroEscolaController::class, 'store'])
     ->middleware('throttle:5,1');
 Route::post('/ativacao/reenviar', [RegistroEscolaController::class, 'reenviarCodigo'])
     ->middleware('throttle:5,1');
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/platform/login', [AuthController::class, 'platformLogin']);
-Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail']);
-Route::post('/reset-password', [PasswordResetController::class, 'reset']);
+Route::middleware('throttle:login')->group(function () {
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/platform/login', [AuthController::class, 'platformLogin']);
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail']);
+    Route::post('/reset-password', [PasswordResetController::class, 'reset']);
+});
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', function (Request $request) {
         return new UserResource($request->user());
     });
+    Route::put('/me/senha', [MeController::class, 'updateSenha']);
 
     Route::get('/instituicoes/mine', [InstituicaoController::class, 'mine']);
     Route::post('/instituicoes/switch', [InstituicaoController::class, 'switch']);

@@ -59,6 +59,7 @@ class AuthController extends Controller
             new OA\Response(response: 403, description: 'Sem acesso à instituição ou assinatura bloqueada'),
             new OA\Response(response: 404, description: 'Instituição não encontrada'),
             new OA\Response(response: 422, description: 'Erro de validação'),
+            new OA\Response(response: 429, description: 'Muitas tentativas; aguarde para tentar novamente'),
         ]
     )]
     public function login(LoginRequest $request)

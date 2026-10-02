@@ -25,6 +25,8 @@ class UpdateProfessorUseCase
 
             if (! empty($data['password'])) {
                 $userData['password'] = $data['password'];
+                $userData['deve_trocar_senha'] = true;
+                $professor->usuario->tokens()->delete();
             }
 
             $this->users->update($professor->usuario, $userData);
