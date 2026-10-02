@@ -7,6 +7,10 @@ use Carbon\Carbon;
 
 class PlatformTrialResolver
 {
+    public function __construct(
+        private readonly PlatformSettings $settings,
+    ) {}
+
     /**
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
@@ -88,6 +92,12 @@ class PlatformTrialResolver
 
     public function defaultTrialDays(): int
     {
+        $configurado = $this->settings->get(PlatformSettings::DEFAULT_TRIAL_DAYS);
+
+        if ($configurado !== null && (int) $configurado > 0) {
+            return (int) $configurado;
+        }
+
         return (int) config('platform.default_trial_days', 14);
     }
 }

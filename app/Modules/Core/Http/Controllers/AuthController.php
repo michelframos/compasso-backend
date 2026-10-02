@@ -69,6 +69,7 @@ class AuthController extends Controller
             $credentials['password'],
             $credentials['tenant_cnpj'] ?? null,
             $credentials['tenant_slug'] ?? null,
+            $credentials['activation_code'] ?? null,
         );
 
         if ($result === null) {
@@ -81,6 +82,20 @@ class AuthController extends Controller
 
         if (isset($result['not_found'])) {
             return response()->json(['message' => 'Instituição não encontrada.'], 404);
+        }
+
+        if (isset($result['activation_required'])) {
+            return response()->json([
+                'message' => 'Informe o código de ativação enviado para o seu e-mail.',
+                'code' => 'activation_required',
+            ], 403);
+        }
+
+        if (isset($result['activation_invalid'])) {
+            return response()->json([
+                'message' => 'Código de ativação inválido ou expirado.',
+                'errors' => ['activation_code' => ['Código de ativação inválido ou expirado.']],
+            ], 422);
         }
 
         if (isset($result['subscription_blocked'])) {

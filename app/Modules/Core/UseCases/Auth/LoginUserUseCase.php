@@ -6,6 +6,7 @@ use App\Modules\Core\Domain\ValueObjects\Cnpj;
 use App\Modules\Core\Models\Instituicao;
 use App\Modules\Core\Models\InstituicaoUsuario;
 use App\Modules\Core\Models\User;
+use App\Modules\Core\Support\InstituicaoActivationService;
 use App\Modules\Core\Support\InstituicaoSubscriptionGuard;
 use App\Modules\Core\Support\InstituicaoTokenService;
 use App\Modules\Core\UseCases\Instituicao\ListUserInstituicoesUseCase;
@@ -18,6 +19,7 @@ class LoginUserUseCase
         private readonly InstituicaoTokenService $tokenService,
         private readonly ListUserInstituicoesUseCase $listInstituicoes,
         private readonly InstituicaoSubscriptionGuard $subscriptionGuard,
+        private readonly InstituicaoActivationService $activation,
     ) {}
 
     /**
@@ -25,8 +27,13 @@ class LoginUserUseCase
      *
      * @return array<string, mixed>|null
      */
-    public function execute(string $email, string $password, ?string $tenantCnpj = null, ?string $tenantSlug = null): ?array
-    {
+    public function execute(
+        string $email,
+        string $password,
+        ?string $tenantCnpj = null,
+        ?string $tenantSlug = null,
+        ?string $activationCode = null,
+    ): ?array {
         $authenticatedUsers = $this->findAuthenticatedUsers($email, $password);
 
         if ($authenticatedUsers->isEmpty()) {
@@ -43,6 +50,18 @@ class LoginUserUseCase
 
         if ($user === null) {
             return ['forbidden' => true];
+        }
+
+        if ($instituicao->aguardandoAtivacao()) {
+            if (! filled($activationCode)) {
+                return ['activation_required' => true];
+            }
+
+            if (! $this->activation->codigoValido($instituicao, $activationCode)) {
+                return ['activation_invalid' => true];
+            }
+
+            $this->activation->ativar($instituicao);
         }
 
         $blocked = $this->subscriptionGuard->check($instituicao);

@@ -5,6 +5,7 @@ use App\Modules\Core\Http\Controllers\AuthController;
 use App\Modules\Core\Http\Controllers\ConfiguracaoEmpresaController;
 use App\Modules\Core\Http\Controllers\InstituicaoController;
 use App\Modules\Core\Http\Controllers\PlatformConfigController;
+use App\Modules\Core\Http\Controllers\PlatformConfiguracoesController;
 use App\Modules\Core\Http\Controllers\PlatformImpersonationController;
 use App\Modules\Core\Http\Controllers\PlatformInstituicaoController;
 use App\Modules\Core\Http\Controllers\PlatformDepoimentoController;
@@ -14,6 +15,7 @@ use App\Modules\Core\Http\Controllers\PlatformSolicitacaoAssinaturaController;
 use App\Modules\Core\Http\Controllers\LocalidadeController;
 use App\Modules\Core\Http\Controllers\PasswordResetController;
 use App\Modules\Core\Http\Controllers\PublicController;
+use App\Modules\Core\Http\Controllers\RegistroEscolaController;
 use App\Modules\Core\Http\Controllers\UserController;
 use App\Modules\Core\Http\Resources\UserResource;
 use Illuminate\Http\Request;
@@ -34,6 +36,10 @@ Route::prefix('public')->group(function () {
 });
 
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/registrar-escola', [RegistroEscolaController::class, 'store'])
+    ->middleware('throttle:5,1');
+Route::post('/ativacao/reenviar', [RegistroEscolaController::class, 'reenviarCodigo'])
+    ->middleware('throttle:5,1');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/platform/login', [AuthController::class, 'platformLogin']);
 Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail']);
@@ -68,6 +74,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::middleware('super_admin')->prefix('platform')->group(function () {
         Route::get('config', [PlatformConfigController::class, 'show']);
+        Route::get('configuracoes', [PlatformConfiguracoesController::class, 'show']);
+        Route::put('configuracoes', [PlatformConfiguracoesController::class, 'update']);
         Route::get('instituicoes/{instituicao}/usuarios', [PlatformInstituicaoController::class, 'usuarios']);
         Route::post('instituicoes/{instituicao}/impersonate', [PlatformInstituicaoController::class, 'impersonate']);
         Route::apiResource('instituicoes', PlatformInstituicaoController::class);

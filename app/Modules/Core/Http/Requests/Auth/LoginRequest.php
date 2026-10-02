@@ -15,7 +15,8 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: "email", type: "string", format: "email", example: "user@example.com"),
         new OA\Property(property: "password", type: "string", format: "password", example: "password"),
         new OA\Property(property: "tenant_cnpj", type: "string", example: "11.222.333/0001-81"),
-        new OA\Property(property: "tenant_slug", type: "string", nullable: true, example: "default")
+        new OA\Property(property: "tenant_slug", type: "string", nullable: true, example: "default"),
+        new OA\Property(property: "activation_code", type: "string", nullable: true, example: "123456", description: "Código de ativação exigido no primeiro acesso de escolas cadastradas pela tela de login")
     ]
 )]
 class LoginRequest extends FormRequest
@@ -47,6 +48,7 @@ class LoginRequest extends FormRequest
             'password' => ['required', 'string'],
             'tenant_cnpj' => ['required_without:tenant_slug', 'nullable', 'string', 'max:20'],
             'tenant_slug' => ['nullable', 'string', 'max:255'],
+            'activation_code' => ['nullable', 'string', 'max:20'],
         ];
     }
 

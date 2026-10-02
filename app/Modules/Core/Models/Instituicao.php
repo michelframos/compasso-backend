@@ -50,13 +50,24 @@ class Instituicao extends Model
         'assinatura_status',
     ];
 
+    protected $hidden = [
+        'codigo_ativacao',
+    ];
+
     protected function casts(): array
     {
         return [
             'trial_ends_at' => 'datetime',
             'trial_usa_padrao' => 'boolean',
             'assinatura_inicia_em' => 'date',
+            'codigo_ativacao_expira_em' => 'datetime',
+            'ativada_em' => 'datetime',
         ];
+    }
+
+    public function aguardandoAtivacao(): bool
+    {
+        return $this->codigo_ativacao !== null && $this->ativada_em === null;
     }
 
     protected function cnpj(): Attribute
