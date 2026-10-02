@@ -1,0 +1,11 @@
+vendor/
+node_modules/
+.git/
+.env
+storage/app/public
+storage/logs/
+bootstrap/cache/
+*.log
+.phpunit.result.cache
+debug_*.php
+payload.json

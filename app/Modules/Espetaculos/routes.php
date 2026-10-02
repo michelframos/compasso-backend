@@ -1,0 +1,33 @@
+<?php
+
+use App\Modules\Espetaculos\Http\Controllers\ApresentacaoAlunoController;
+use App\Modules\Espetaculos\Http\Controllers\ApresentacaoController;
+use App\Modules\Espetaculos\Http\Controllers\EspetaculoController;
+use Illuminate\Support\Facades\Route;
+
+/*
+| Rotas do módulo Espetáculos.
+| Prefixadas com /api pelo EspetaculosServiceProvider.
+| ResolveInstituicao é aplicado globalmente no grupo api (bootstrap).
+*/
+
+Route::middleware(['auth:sanctum', 'ensure.instituicao.membership', 'ensure.plano.modulo:espetaculos'])->group(function () {
+    Route::middleware('role:secretaria,admin')->group(function () {
+        Route::apiResource('espetaculos', EspetaculoController::class)->only(['store', 'update', 'destroy']);
+        Route::apiResource('apresentacoes', ApresentacaoController::class)
+            ->parameters(['apresentacoes' => 'apresentacao'])
+            ->only(['store', 'update', 'destroy']);
+        Route::post('apresentacoes/{apresentacao}/gerar-cobrancas-figurino', [ApresentacaoAlunoController::class, 'gerarCobrancasEmLote']);
+        Route::apiResource('apresentacoes-alunos', ApresentacaoAlunoController::class)
+            ->parameters(['apresentacoes-alunos' => 'apresentacaoAluno'])
+            ->only(['store', 'update', 'destroy']);
+    });
+
+    Route::apiResource('espetaculos', EspetaculoController::class)->only(['index', 'show']);
+    Route::apiResource('apresentacoes', ApresentacaoController::class)
+        ->parameters(['apresentacoes' => 'apresentacao'])
+        ->only(['index', 'show']);
+    Route::apiResource('apresentacoes-alunos', ApresentacaoAlunoController::class)
+        ->parameters(['apresentacoes-alunos' => 'apresentacaoAluno'])
+        ->only(['index', 'show']);
+});
