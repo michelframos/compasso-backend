@@ -26,7 +26,7 @@ use OpenApi\Attributes as OA;
                 new OA\Property(property: 'id', type: 'integer'),
                 new OA\Property(property: 'descricao', type: 'string', nullable: true),
             ]),
-            new OA\Property(property: 'curso', type: 'object', nullable: true, description: 'Curso da matrícula (tipo curso) ou da turma', properties: [new OA\Property(property: 'nome', type: 'string')]),
+            new OA\Property(property: 'curso', type: 'object', nullable: true, description: 'Curso da matrícula (tipo curso) ou da turma', properties: [new OA\Property(property: 'id', type: 'integer'), new OA\Property(property: 'nome', type: 'string')]),
             new OA\Property(property: 'nivel', type: 'object', nullable: true, description: 'Nível da matrícula (tipo curso) ou da turma', properties: [new OA\Property(property: 'nome', type: 'string')]),
         ])),
     ]
@@ -49,7 +49,7 @@ class AlunoDoProfessorResource extends JsonResource
                 'status' => $m->status,
                 'id_turma' => $m->id_turma,
                 'turma' => $m->turma ? ['id' => $m->turma->id, 'descricao' => $m->turma->descricao] : null,
-                'curso' => ($curso = $m->curso ?? $m->turma?->curso) ? ['nome' => $curso->nome] : null,
+                'curso' => ($curso = $m->curso ?? $m->turma?->curso) ? ['id' => $curso->id, 'nome' => $curso->nome] : null,
                 'nivel' => ($nivel = $m->nivel ?? $m->turma?->nivel) ? ['nome' => $nivel->nome] : null,
             ])->values()->all(),
         ];

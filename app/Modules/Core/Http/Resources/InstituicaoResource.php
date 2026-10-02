@@ -20,7 +20,8 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'trial_ends_at', type: 'string', format: 'date-time', nullable: true),
         new OA\Property(property: 'id_plano_assinatura', type: 'integer', nullable: true),
         new OA\Property(property: 'limite_alunos', type: 'integer', nullable: true),
-        new OA\Property(property: 'modulos', type: 'array', items: new OA\Items(type: 'string')),
+        new OA\Property(property: 'modulos', type: 'array', description: 'Módulos ativos: contratados e não desligados pela escola', items: new OA\Items(type: 'string')),
+        new OA\Property(property: 'modulos_contratados', type: 'array', description: 'Módulos incluídos no plano (ou liberados pelo trial)', items: new OA\Items(type: 'string')),
         new OA\Property(property: 'em_trial', type: 'boolean'),
     ]
 )]
@@ -45,6 +46,7 @@ class InstituicaoResource extends JsonResource
             'id_plano_assinatura' => $this->id_plano_assinatura,
             'limite_alunos' => $entitlements['limite_alunos'],
             'modulos' => $entitlements['modulos'],
+            'modulos_contratados' => $entitlements['modulos_contratados'],
             'em_trial' => $entitlements['em_trial'],
         ];
     }

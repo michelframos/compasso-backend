@@ -14,6 +14,9 @@ use App\Modules\Core\Http\Controllers\PlatformSiteModuloController;
 use App\Modules\Core\Http\Controllers\PlatformSolicitacaoAssinaturaController;
 use App\Modules\Core\Http\Controllers\LocalidadeController;
 use App\Modules\Core\Http\Controllers\MeController;
+use App\Modules\Core\Http\Controllers\ModuloInstituicaoController;
+use App\Modules\Core\Http\Controllers\ComunicacaoProfessorController;
+use App\Modules\Core\Http\Controllers\PermissoesProfessorController;
 use App\Modules\Core\Http\Controllers\PasswordResetController;
 use App\Modules\Core\Http\Controllers\PublicController;
 use App\Modules\Core\Http\Controllers\RegistroEscolaController;
@@ -75,6 +78,21 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('planos', [AssinaturaController::class, 'planos']);
             Route::get('solicitacao', [AssinaturaController::class, 'solicitacaoAtual']);
             Route::post('solicitar', [AssinaturaController::class, 'solicitar']);
+        });
+
+        Route::middleware('role:admin')->prefix('instituicao/modulos')->group(function () {
+            Route::get('/', [ModuloInstituicaoController::class, 'index']);
+            Route::put('{modulo}', [ModuloInstituicaoController::class, 'update']);
+        });
+
+        Route::middleware('role:admin')->prefix('instituicao/comunicacao-professor')->group(function () {
+            Route::get('/', [ComunicacaoProfessorController::class, 'show']);
+            Route::put('/', [ComunicacaoProfessorController::class, 'update']);
+        });
+
+        Route::middleware('role:admin')->prefix('instituicao/permissoes-professor')->group(function () {
+            Route::get('/', [PermissoesProfessorController::class, 'show']);
+            Route::put('/', [PermissoesProfessorController::class, 'update']);
         });
     });
 

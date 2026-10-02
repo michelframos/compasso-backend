@@ -2,6 +2,8 @@
 
 namespace App\Modules\Notificacoes\Providers;
 
+use App\Modules\Core\Contracts\EnviarAvisoTurmaPort;
+use App\Modules\Notificacoes\Adapters\EnviarAvisoTurmaAdapter;
 use App\Modules\Notificacoes\Adapters\WhatsappHttpApiAdapter;
 use App\Modules\Notificacoes\Contracts\WhatsappGatewayInterface;
 use App\Modules\Notificacoes\Services\NotificationChannelResolver;
@@ -26,6 +28,8 @@ class NotificacoesServiceProvider extends ServiceProvider
         $this->app->bind(NotificationChannelResolver::class, fn ($app) => new NotificationChannelResolver(
             $app->tagged('notification.channels'),
         ));
+
+        $this->app->bind(EnviarAvisoTurmaPort::class, EnviarAvisoTurmaAdapter::class);
     }
 
     public function boot(): void

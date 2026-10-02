@@ -2,10 +2,13 @@
 
 use App\Modules\Relatorios\Http\Controllers\DashboardController;
 use App\Modules\Relatorios\Http\Controllers\DiarioClasseProfessorController;
+use App\Modules\Relatorios\Http\Controllers\ExtratoProfessorController;
+use App\Modules\Relatorios\Http\Controllers\FrequenciaProfessorController;
 use App\Modules\Relatorios\Http\Controllers\RelatorioComercialController;
 use App\Modules\Relatorios\Http\Controllers\RelatorioFinanceiroController;
 use App\Modules\Relatorios\Http\Controllers\RelatorioInstrumentoController;
 use App\Modules\Relatorios\Http\Controllers\RelatorioPedagogicoController;
+use App\Modules\Relatorios\Http\Controllers\RemuneracaoProfessorController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,8 +18,18 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['auth:sanctum', 'ensure.instituicao.membership'])->group(function () {
-    Route::middleware(['ensure.senha.atualizada', 'role:professor', 'ensure.perfil.professor'])
-        ->get('professor/me/turmas/{turma}/diario', [DiarioClasseProfessorController::class, 'show']);
+    Route::middleware(['ensure.senha.atualizada', 'role:professor', 'ensure.perfil.professor'])->group(function () {
+        Route::get('professor/me/turmas/{turma}/diario', [DiarioClasseProfessorController::class, 'show']);
+        Route::get('professor/me/relatorios/frequencia', [FrequenciaProfessorController::class, 'show']);
+        Route::get('professor/me/extrato', [ExtratoProfessorController::class, 'show']);
+    });
+
+    Route::middleware(['ensure.senha.atualizada', 'role:admin'])->prefix('relatorios/professores')->group(function () {
+        Route::get('remuneracao', [RemuneracaoProfessorController::class, 'index']);
+        Route::get('{professor}/extrato', [RemuneracaoProfessorController::class, 'extrato']);
+        Route::post('{professor}/fechamentos', [RemuneracaoProfessorController::class, 'fechar']);
+        Route::delete('{professor}/fechamentos/{fechamento}', [RemuneracaoProfessorController::class, 'reabrir']);
+    });
 
     Route::middleware('role:secretaria,admin')->group(function () {
         Route::get('dashboard/resumo', [DashboardController::class, 'resumo']);

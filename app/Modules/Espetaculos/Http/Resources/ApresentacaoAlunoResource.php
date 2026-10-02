@@ -8,7 +8,7 @@ use OpenApi\Attributes as OA;
 
 #[OA\Schema(
     title: "ApresentacaoAlunoResource",
-    description: "Recurso de Apresentação Aluno",
+    description: "Recurso de Apresentação Aluno. `valor_figurino`, `pago_figurino` e `fatura_gerada` são omitidos para o professor.",
     type: "object",
     properties: [
         new OA\Property(property: "id", type: "integer"),
@@ -36,15 +36,17 @@ class ApresentacaoAlunoResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $exibeFinanceiro = $request->user()?->role !== 'professor';
+
         return [
             'id' => $this->id,
             'id_apresentacao' => $this->id_apresentacao,
             'id_aluno' => $this->id_aluno,
             'tamanho_figurino' => $this->tamanho_figurino,
-            'valor_figurino' => $this->valor_figurino,
-            'pago_figurino' => (bool)$this->pago_figurino,
+            'valor_figurino' => $this->when($exibeFinanceiro, fn () => $this->valor_figurino),
+            'pago_figurino' => $this->when($exibeFinanceiro, fn () => (bool) $this->pago_figurino),
             'recebeu_figurino' => (bool)$this->recebeu_figurino,
-            'fatura_gerada' => (bool)$this->fatura_gerada,
+            'fatura_gerada' => $this->when($exibeFinanceiro, fn () => (bool) $this->fatura_gerada),
             'presenca_ensaio_geral' => (bool)$this->presenca_ensaio_geral,
             'apresentacao' => new ApresentacaoResource($this->whenLoaded('apresentacao')),
             // we assume an AlunoResource will be used if needed, or we just return the array. Let's return relation if loaded.

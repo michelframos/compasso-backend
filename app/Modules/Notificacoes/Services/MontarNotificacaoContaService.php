@@ -2,7 +2,9 @@
 
 namespace App\Modules\Notificacoes\Services;
 
+use App\Modules\Core\Domain\Notificacoes\Notificacao;
 use App\Modules\Core\Domain\Notificacoes\NotificacaoConta;
+use App\Modules\Core\Support\NumeroWhatsapp;
 use App\Modules\Financeiro\Models\Conta;
 use App\Modules\Notificacoes\Models\ConfiguracaoNotificacao;
 use Carbon\Carbon;
@@ -24,12 +26,11 @@ class MontarNotificacaoContaService
             ?? 'Cliente';
 
         $destino = $canal === 'whatsapp'
-            ? $this->formatarNumeroWhatsapp(
+            ? NumeroWhatsapp::formatar(
                 $usuarioDestino?->whatsapp
                     ?? $usuarioDestino?->telefone
                     ?? $aluno?->usuario?->whatsapp
                     ?? $aluno?->usuario?->telefone
-                    ?? ''
             )
             : ($usuarioDestino?->email ?? $aluno?->usuario?->email ?? '');
 
@@ -38,6 +39,38 @@ class MontarNotificacaoContaService
             destinatario: $nome,
             destino: $destino ?: null,
             mensagem: $this->renderizarMensagem($conta, $nome),
+        );
+    }
+
+    /** Os jobs de notificação automática identificam a conta pelo alias legado. */
+    public function paraEnvio(NotificacaoConta $notificacao): Notificacao
+    {
+        return new Notificacao(
+            destinatario: $notificacao->destinatario,
+            destino: $notificacao->destino,
+            mensagem: $notificacao->mensagem,
+            referenciaType: \App\Models\Conta::class,
+            referenciaId: $notificacao->contaId,
+            assunto: 'Aviso sobre sua parcela',
+            idConfiguracao: $this->configuracaoAtraso()->id,
+        );
+    }
+
+    private function configuracaoAtraso(): ConfiguracaoNotificacao
+    {
+        return ConfiguracaoNotificacao::firstOrCreate(
+            [
+                'modulo' => 'contas_a_receber',
+                'tipo' => 'atraso',
+            ],
+            [
+                'ativo' => false,
+                'dias_antecedencia' => 1,
+                'intervalo_repeticao' => 1,
+                'max_repeticoes' => null,
+                'template_mensagem' => self::TEMPLATE_PADRAO_ATRASO,
+                'horario_envio' => '08:00',
+            ]
         );
     }
 
@@ -61,16 +94,5 @@ class MontarNotificacaoContaService
             ],
             $template
         );
-    }
-
-    private function formatarNumeroWhatsapp(string $numero): string
-    {
-        $apenasNumeros = preg_replace('/\D/', '', $numero) ?? '';
-
-        if (strlen($apenasNumeros) === 10 || strlen($apenasNumeros) === 11) {
-            return '55'.$apenasNumeros;
-        }
-
-        return $apenasNumeros;
     }
 }

@@ -56,7 +56,8 @@ class ContaNotificacaoController extends Controller
         $notificacao = $this->montarNotificacao->montar($conta, $data['canal'])
             ->comMensagem($data['mensagem']);
 
-        $resultado = $this->canais->resolve($data['canal'])->enviar($notificacao);
+        $resultado = $this->canais->resolve($data['canal'])
+            ->enviar($this->montarNotificacao->paraEnvio($notificacao));
 
         $status = match ($resultado->status) {
             ResultadoEnvio::ENVIADO => 200,

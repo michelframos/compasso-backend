@@ -2,21 +2,28 @@
 
 namespace App\Modules\Academico\Providers;
 
+use App\Modules\Academico\Listeners\AtualizarDestinatarioAviso;
 use App\Modules\Academico\Models\AulaTurma;
 use App\Modules\Academico\Models\AvaliacaoAluno;
+use App\Modules\Academico\Models\AvisoTurma;
 use App\Modules\Academico\Models\MaterialTurma;
 use App\Modules\Academico\Models\Matricula;
 use App\Modules\Academico\Models\ObservacaoAluno;
+use App\Modules\Academico\Models\SolicitacaoAula;
 use App\Modules\Academico\Models\SugestaoProgressao;
 use App\Modules\Academico\Models\Turma;
 use App\Modules\Academico\Policies\AulaTurmaPolicy;
 use App\Modules\Academico\Policies\AvaliacaoAlunoPolicy;
+use App\Modules\Academico\Policies\AvisoTurmaPolicy;
 use App\Modules\Academico\Policies\FichaAlunoPolicy;
 use App\Modules\Academico\Policies\MaterialTurmaPolicy;
 use App\Modules\Academico\Policies\MatriculaPolicy;
 use App\Modules\Academico\Policies\ObservacaoAlunoPolicy;
+use App\Modules\Academico\Policies\SolicitacaoAulaPolicy;
 use App\Modules\Academico\Policies\SugestaoProgressaoPolicy;
 use App\Modules\Academico\Policies\TurmaPolicy;
+use App\Modules\Core\Events\NotificacaoProcessada;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -38,7 +45,11 @@ class AcademicoServiceProvider extends ServiceProvider
         Gate::policy(ObservacaoAluno::class, ObservacaoAlunoPolicy::class);
         Gate::policy(AvaliacaoAluno::class, AvaliacaoAlunoPolicy::class);
         Gate::policy(SugestaoProgressao::class, SugestaoProgressaoPolicy::class);
+        Gate::policy(SolicitacaoAula::class, SolicitacaoAulaPolicy::class);
+        Gate::policy(AvisoTurma::class, AvisoTurmaPolicy::class);
         Gate::define('verFichaAluno', [FichaAlunoPolicy::class, 'view']);
+
+        Event::listen(NotificacaoProcessada::class, AtualizarDestinatarioAviso::class);
 
         Route::middleware('api')
             ->prefix('api')

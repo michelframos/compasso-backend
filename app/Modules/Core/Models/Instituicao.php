@@ -48,6 +48,9 @@ class Instituicao extends Model
         'trial_usa_padrao',
         'assinatura_inicia_em',
         'assinatura_status',
+        'modulos_desativados',
+        'permissoes_professor_aulas',
+        'limite_avisos_professor_dia',
     ];
 
     protected $hidden = [
@@ -62,6 +65,9 @@ class Instituicao extends Model
             'assinatura_inicia_em' => 'date',
             'codigo_ativacao_expira_em' => 'datetime',
             'ativada_em' => 'datetime',
+            'modulos_desativados' => 'array',
+            'permissoes_professor_aulas' => 'array',
+            'limite_avisos_professor_dia' => 'integer',
         ];
     }
 

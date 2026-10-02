@@ -2,6 +2,8 @@
 
 namespace App\Modules\Academico\Http\Resources;
 
+use App\Modules\Core\Support\InstituicaoContext;
+use App\Modules\Core\Support\PermissoesProfessorAulas;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use OpenApi\Attributes as OA;
@@ -18,6 +20,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'foto', type: 'string', nullable: true),
         new OA\Property(property: 'telefone', type: 'string', nullable: true),
         new OA\Property(property: 'whatsapp', type: 'string', nullable: true),
+        new OA\Property(property: 'permissoes_aulas', ref: '#/components/schemas/UpdatePermissoesProfessorRequest', description: 'Por ação: livre (faz direto), aprovacao (vira solicitação) ou bloqueado'),
     ]
 )]
 class ProfessorAutenticadoResource extends JsonResource
@@ -32,6 +35,7 @@ class ProfessorAutenticadoResource extends JsonResource
             'foto' => $this->usuario?->foto,
             'telefone' => $this->usuario?->telefone,
             'whatsapp' => $this->usuario?->whatsapp,
+            'permissoes_aulas' => PermissoesProfessorAulas::da(InstituicaoContext::instituicao()),
         ];
     }
 }

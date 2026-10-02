@@ -6,7 +6,8 @@ use App\Modules\Academico\Models\AulaTurma;
 
 /**
  * Congela na aula os valores financeiros vigentes (hora-aula, comissão e mensalidade)
- * no momento em que ela é concluída.
+ * no momento em que ela é concluída. Valores da turma sobrepõem os do professor;
+ * aulas individuais (sem turma) usam só os do professor.
  */
 class AulaSnapshotService
 {
@@ -16,21 +17,18 @@ class AulaSnapshotService
             return $data;
         }
 
-        $turmaId = $data['id_turma'] ?? $aula?->id_turma;
-        $professorId = $data['id_professor'] ?? $aula?->id_professor;
+        $turmaId = array_key_exists('id_turma', $data) ? $data['id_turma'] : $aula?->id_turma;
+        $turma = $turmaId ? \App\Models\Turma::find($turmaId) : null;
+        $professorId = ($data['id_professor'] ?? null) ?? $aula?->id_professor ?? $turma?->id_professor;
+        $professor = $professorId ? \App\Models\Professor::find($professorId) : null;
 
-        if (! $turmaId || ! $professorId) {
+        if (! $professor) {
             return $data;
         }
 
-        $turma = \App\Models\Turma::find($turmaId);
-        $professor = \App\Models\Professor::find($professorId);
-
-        if ($turma && $professor) {
-            $data['valor_hora_aula_aplicado'] = $turma->valor_hora_aula_especifico ?? $professor->valor_hora_aula;
-            $data['percentual_comissao_aplicado'] = $turma->percentual_comissao_especifico ?? $professor->comissao;
-            $data['valor_mensalidade_aplicado'] = $turma->valor_mensalidade;
-        }
+        $data['valor_hora_aula_aplicado'] = $turma?->valor_hora_aula_especifico ?? $professor->valor_hora_aula;
+        $data['percentual_comissao_aplicado'] = $turma?->percentual_comissao_especifico ?? $professor->comissao;
+        $data['valor_mensalidade_aplicado'] = $turma?->valor_mensalidade;
 
         return $data;
     }

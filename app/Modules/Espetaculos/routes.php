@@ -2,6 +2,8 @@
 
 use App\Modules\Espetaculos\Http\Controllers\ApresentacaoAlunoController;
 use App\Modules\Espetaculos\Http\Controllers\ApresentacaoController;
+use App\Modules\Espetaculos\Http\Controllers\ApresentacaoProfessorController;
+use App\Modules\Espetaculos\Http\Controllers\EnsaioController;
 use App\Modules\Espetaculos\Http\Controllers\EspetaculoController;
 use Illuminate\Support\Facades\Route;
 
@@ -30,4 +32,17 @@ Route::middleware(['auth:sanctum', 'ensure.instituicao.membership', 'ensure.plan
     Route::apiResource('apresentacoes-alunos', ApresentacaoAlunoController::class)
         ->parameters(['apresentacoes-alunos' => 'apresentacaoAluno'])
         ->only(['index', 'show']);
+
+    Route::middleware(['ensure.senha.atualizada', 'role:professor,secretaria,admin'])->group(function () {
+        Route::apiResource('ensaios', EnsaioController::class)
+            ->parameters(['ensaios' => 'ensaio'])
+            ->only(['index', 'store', 'update', 'destroy']);
+    });
+
+    Route::middleware(['ensure.senha.atualizada', 'role:professor', 'ensure.perfil.professor'])
+        ->prefix('professor/me')
+        ->group(function () {
+            Route::get('apresentacoes', [ApresentacaoProfessorController::class, 'index']);
+            Route::get('apresentacoes/{apresentacao}', [ApresentacaoProfessorController::class, 'show']);
+        });
 });

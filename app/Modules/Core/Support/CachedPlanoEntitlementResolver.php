@@ -27,7 +27,7 @@ class CachedPlanoEntitlementResolver implements PlanoEntitlementResolverInterfac
     {
         $versao = $updatedAt ? Carbon::parse($updatedAt)->getTimestamp() : 0;
 
-        return "entitlements:{$instituicaoId}:{$versao}";
+        return "entitlements:v2:{$instituicaoId}:{$versao}";
     }
 
     public function resolve(Instituicao $instituicao): array
@@ -54,6 +54,11 @@ class CachedPlanoEntitlementResolver implements PlanoEntitlementResolverInterfac
         return $this->resolve($instituicao)['modulos'];
     }
 
+    public function modulosContratados(Instituicao $instituicao): array
+    {
+        return $this->resolve($instituicao)['modulos_contratados'];
+    }
+
     public function limiteAlunos(Instituicao $instituicao): ?int
     {
         return $this->resolve($instituicao)['limite_alunos'];
@@ -62,6 +67,16 @@ class CachedPlanoEntitlementResolver implements PlanoEntitlementResolverInterfac
     public function permiteModulo(Instituicao $instituicao, string $modulo): bool
     {
         return in_array($modulo, $this->modulos($instituicao), true);
+    }
+
+    public function moduloContratado(Instituicao $instituicao, string $modulo): bool
+    {
+        return in_array($modulo, $this->modulosContratados($instituicao), true);
+    }
+
+    public function modulosDesativaveis(): array
+    {
+        return $this->resolver->modulosDesativaveis();
     }
 
     public function catalogKeys(): array

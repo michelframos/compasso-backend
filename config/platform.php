@@ -20,6 +20,7 @@ return [
     |
     | Catálogo fixo de features opcionais. Chaves salvas em planos_assinatura.modulos.
     | Recursos core (dashboard, agenda, alunos, acadêmico, config) ficam sempre liberados.
+    | `desativavel` => a própria escola pode desligar o módulo (instituicoes.modulos_desativados).
     |
     */
 
@@ -43,6 +44,16 @@ return [
         'relatorios' => [
             'label' => 'Relatórios avançados',
             'descricao' => 'Relatórios financeiros, pedagógicos e comerciais',
+        ],
+        'avaliacoes' => [
+            'label' => 'Avaliações dos alunos',
+            'descricao' => 'Notas e conceitos lançados pelos professores',
+            'desativavel' => true,
+        ],
+        'progressao' => [
+            'label' => 'Progressão de nível',
+            'descricao' => 'Sugestões de mudança de nível pelos professores e aprovação pela secretaria',
+            'desativavel' => true,
         ],
     ],
 

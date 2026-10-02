@@ -18,7 +18,7 @@ class PlanoAssinaturaSeeder extends Seeder
                 'descricao' => 'Ideal para escolas em início de operação.',
                 'preco_mensal' => 99.90,
                 'limite_alunos' => 80,
-                'modulos' => ['leads'],
+                'modulos' => ['leads', 'avaliacoes', 'progressao'],
                 'ativo' => true,
             ],
             [
@@ -27,7 +27,7 @@ class PlanoAssinaturaSeeder extends Seeder
                 'descricao' => 'Recursos completos para escolas em crescimento.',
                 'preco_mensal' => 199.90,
                 'limite_alunos' => 250,
-                'modulos' => ['leads', 'financeiro', 'instrumentos'],
+                'modulos' => ['leads', 'financeiro', 'instrumentos', 'avaliacoes', 'progressao'],
                 'ativo' => true,
             ],
             [

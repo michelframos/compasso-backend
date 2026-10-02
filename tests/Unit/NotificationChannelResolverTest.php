@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use App\Modules\Core\Domain\Notificacoes\NotificacaoConta;
+use App\Modules\Core\Domain\Notificacoes\Notificacao;
 use App\Modules\Core\Domain\Notificacoes\ResultadoEnvio;
 use App\Modules\Core\Domain\Strategies\NotificationStrategyInterface;
 use App\Modules\Notificacoes\Services\NotificationChannelResolver;
@@ -22,7 +22,7 @@ class NotificationChannelResolverTest extends TestCase
                 return $this->nome;
             }
 
-            public function enviar(NotificacaoConta $notificacao): ResultadoEnvio
+            public function enviar(Notificacao $notificacao): ResultadoEnvio
             {
                 return ResultadoEnvio::enviado($this->nome);
             }

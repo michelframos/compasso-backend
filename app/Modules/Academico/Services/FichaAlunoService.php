@@ -7,7 +7,9 @@ use App\Modules\Academico\Models\AvaliacaoAluno;
 use App\Modules\Academico\Models\Matricula;
 use App\Modules\Academico\Models\ObservacaoAluno;
 use App\Modules\Academico\Models\SugestaoProgressao;
+use App\Modules\Core\Contracts\PlanoEntitlementResolverInterface;
 use App\Modules\Core\Models\User;
+use App\Modules\Core\Support\InstituicaoContext;
 use App\Modules\Pessoas\Models\Aluno;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -19,6 +21,17 @@ use Illuminate\Support\Collection;
 class FichaAlunoService
 {
     private const ULTIMAS_PRESENCAS = 10;
+
+    public function __construct(private readonly PlanoEntitlementResolverInterface $entitlements)
+    {
+    }
+
+    private function moduloAtivo(string $modulo): bool
+    {
+        $instituicao = InstituicaoContext::instituicao();
+
+        return $instituicao !== null && $this->entitlements->permiteModulo($instituicao, $modulo);
+    }
 
     /**
      * @return array{aluno: Aluno, matriculas: Collection, frequencia: array, observacoes: Collection, avaliacoes: Collection, progressoes: Collection}
@@ -50,21 +63,25 @@ class FichaAlunoService
             ->orderByDesc('id')
             ->get();
 
-        $avaliacoes = AvaliacaoAluno::query()
-            ->visivelPara($user)
-            ->where('id_aluno', $aluno->id)
-            ->with(AvaliacaoAluno::DETALHES)
-            ->orderByDesc('data')
-            ->orderByDesc('id')
-            ->get();
+        $avaliacoes = $this->moduloAtivo('avaliacoes')
+            ? AvaliacaoAluno::query()
+                ->visivelPara($user)
+                ->where('id_aluno', $aluno->id)
+                ->with(AvaliacaoAluno::DETALHES)
+                ->orderByDesc('data')
+                ->orderByDesc('id')
+                ->get()
+            : collect();
 
-        $progressoes = SugestaoProgressao::query()
-            ->visivelPara($user)
-            ->whereIn('id_matricula', $matriculas->pluck('id'))
-            ->with(SugestaoProgressao::DETALHES)
-            ->latest()
-            ->orderByDesc('id')
-            ->get();
+        $progressoes = $this->moduloAtivo('progressao')
+            ? SugestaoProgressao::query()
+                ->visivelPara($user)
+                ->whereIn('id_matricula', $matriculas->pluck('id'))
+                ->with(SugestaoProgressao::DETALHES)
+                ->latest()
+                ->orderByDesc('id')
+                ->get()
+            : collect();
 
         return [
             'aluno' => $aluno,

@@ -555,6 +555,602 @@
                 ]
             }
         },
+        "/api/professor/me/avisos": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Avisos das turmas do professor e os que ele enviou",
+                "operationId": "0bb3af36ba9d071092111cc32fcdf4dc",
+                "parameters": [
+                    {
+                        "name": "id_turma",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "origem",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "manual",
+                                "aula_alterada"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Título ou autor",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Avisos paginados (15 por página), mais recentes primeiro",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AvisoTurmaResource"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Usuário não é professor desta instituição"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Enviar aviso por e-mail e/ou WhatsApp a uma turma ou a alunos escolhidos",
+                "description": "O envio é enfileirado; o status de cada destinatário aparece no detalhe. O professor tem limite diário definido pela escola.",
+                "operationId": "ae8c09b2d308682b5f9f1fd9ede8296c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreAvisoTurmaRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Aviso registrado e enfileirado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AvisoTurmaResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Turma de outro professor"
+                    },
+                    "422": {
+                        "description": "Dados inválidos, WhatsApp desconectado, alunos fora da turma/do professor ou nenhum aluno vigente"
+                    },
+                    "429": {
+                        "description": "Limite diário de avisos atingido"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/avisos": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Histórico de todos os avisos da escola (secretaria/admin)",
+                "operationId": "4601f09d402c201116377ed2aabf205a",
+                "parameters": [
+                    {
+                        "name": "id_turma",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "origem",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "manual",
+                                "aula_alterada"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Título ou autor",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Avisos paginados (15 por página)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AvisoTurmaResource"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Papel sem acesso"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Enviar aviso a qualquer turma ou alunos (secretaria/admin, sem limite diário)",
+                "operationId": "8e7d5ae2144331b67d680182f4dc3a76",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreAvisoTurmaRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Aviso registrado e enfileirado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AvisoTurmaResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Papel sem acesso"
+                    },
+                    "422": {
+                        "description": "Dados inválidos, WhatsApp desconectado ou nenhum aluno vigente"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/avisos/opcoes": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Canais disponíveis e limite diário de avisos do professor",
+                "operationId": "911437315bff8db0690b78ae3679538d",
+                "responses": {
+                    "200": {
+                        "description": "Opções",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "canais": {
+                                                    "description": "Canal => disponível (WhatsApp exige conexão em Configurações)",
+                                                    "properties": {
+                                                        "email": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "whatsapp": {
+                                                            "type": "boolean"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "limite": {
+                                                    "description": "Nulo para secretaria/admin",
+                                                    "properties": {
+                                                        "por_dia": {
+                                                            "type": "integer"
+                                                        },
+                                                        "enviados_hoje": {
+                                                            "type": "integer"
+                                                        },
+                                                        "restantes": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": "object",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Usuário não é professor desta instituição"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/avisos/opcoes": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Canais disponíveis para avisos (secretaria/admin, sem limite diário)",
+                "operationId": "8186ea0eb4192c771f9c886e332dbd46",
+                "responses": {
+                    "200": {
+                        "description": "Opções (limite sempre nulo)"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Papel sem acesso"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/avisos/previa": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Quantas pessoas receberiam o aviso e quem está sem contato",
+                "operationId": "2736706670b149630eeda596c3c063b7",
+                "parameters": [
+                    {
+                        "name": "id_turma",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "ids_alunos[]",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    {
+                        "name": "publico",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "alunos",
+                                "responsaveis",
+                                "ambos"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "canais[]",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "email",
+                                    "whatsapp"
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Prévia",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "alunos": {
+                                                    "type": "integer"
+                                                },
+                                                "mensagens": {
+                                                    "description": "Mensagens que serão enviadas (pessoa × canal com contato)",
+                                                    "type": "integer"
+                                                },
+                                                "por_canal": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "sem_contato": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "nome": {
+                                                                "type": "string"
+                                                            },
+                                                            "canal": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Turma de outro professor"
+                    },
+                    "422": {
+                        "description": "Alvo ausente ou alunos fora da turma/do professor"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/avisos/previa": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Prévia de destinatários de um aviso (secretaria/admin)",
+                "operationId": "040766f188694c1e33272aa413acd48e",
+                "responses": {
+                    "200": {
+                        "description": "Mesma resposta da prévia do professor"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Papel sem acesso"
+                    },
+                    "422": {
+                        "description": "Alvo ausente"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/avisos/{avisoTurma}": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Detalhe do aviso com o status de cada destinatário",
+                "operationId": "58e280454c2c606381db3b54f2910b27",
+                "parameters": [
+                    {
+                        "name": "avisoTurma",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Aviso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AvisoTurmaResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Aviso de turma de outro professor"
+                    },
+                    "404": {
+                        "description": "Aviso não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/avisos/{avisoTurma}": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Detalhe do aviso (secretaria/admin)",
+                "operationId": "4b4552acc216ef47d7491c3e4ba97678",
+                "parameters": [
+                    {
+                        "name": "avisoTurma",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Aviso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AvisoTurmaResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Papel sem acesso"
+                    },
+                    "404": {
+                        "description": "Aviso não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/aulas-turmas/{aulaTurma}/concluir": {
             "post": {
                 "tags": [
@@ -803,6 +1399,248 @@
                     },
                     "404": {
                         "description": "Curso não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/disponibilidades": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Disponibilidade semanal do professor autenticado",
+                "operationId": "53782d90f1f6b0c046972dccd74da211",
+                "responses": {
+                    "200": {
+                        "description": "Janelas de segunda a domingo",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/DisponibilidadeProfessorResource"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Usuário não é professor desta instituição"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Substituir a disponibilidade semanal do professor autenticado",
+                "operationId": "a1d96c73aa8bfa62bd9c0ad3163888c3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SalvarDisponibilidadesRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Disponibilidade salva",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/DisponibilidadeProfessorResource"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Usuário não é professor desta instituição"
+                    },
+                    "422": {
+                        "description": "Dia inválido, término antes do início ou janelas sobrepostas"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professores/{professor}/disponibilidades": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Disponibilidade semanal de um professor (secretaria)",
+                "operationId": "350ee1a09191ddce8caaa05ee68f4c5c",
+                "parameters": [
+                    {
+                        "name": "professor",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Janelas de segunda a domingo",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/DisponibilidadeProfessorResource"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Papel sem acesso"
+                    },
+                    "404": {
+                        "description": "Professor não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/agenda/professores-livres": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Professores com a situação de agenda num horário (para escolher substituto)",
+                "operationId": "11e684535d6124cec651057672703e92",
+                "parameters": [
+                    {
+                        "name": "data",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "hora_inicio",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "14:00"
+                        }
+                    },
+                    {
+                        "name": "hora_termino",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "15:00"
+                        }
+                    },
+                    {
+                        "name": "ignorar_aula",
+                        "in": "query",
+                        "description": "Aula que não conta como conflito (a que está sendo remanejada)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Livres primeiro, depois fora da disponibilidade, por fim com conflito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "nome": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "conflito": {
+                                                        "description": "Já tem aula no horário",
+                                                        "type": "boolean"
+                                                    },
+                                                    "fora_disponibilidade": {
+                                                        "description": "Cadastrou disponibilidade e o horário fica fora dela",
+                                                        "type": "boolean"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Papel sem acesso"
+                    },
+                    "422": {
+                        "description": "Horário inválido"
                     }
                 },
                 "security": [
@@ -2220,6 +3058,403 @@
                 ]
             }
         },
+        "/api/professor/me/solicitacoes": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Solicitações de aula feitas pelo professor autenticado",
+                "operationId": "bf3dfc59fa61297ebd3ffbda9c0fcb7f",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Padrão: todas",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pendente",
+                                "aprovada",
+                                "rejeitada",
+                                "cancelada",
+                                "todas"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "tipo",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "criacao",
+                                "cancelamento",
+                                "reposicao",
+                                "substituicao"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Solicitações paginadas (15 por página), mais recentes primeiro",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/SolicitacaoAulaResource"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Usuário não é professor desta instituição"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Solicitar criação, cancelamento, reposição ou substituição de aula",
+                "description": "Se a escola deixa a ação livre, a alteração é aplicada na hora (status aprovada, aplicada_automaticamente). Se exige aprovação, fica pendente para a secretaria.",
+                "operationId": "19b28829f0f40396b12fd7e22b03e4c3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreSolicitacaoAulaRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Solicitação registrada (pendente) ou aplicada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/SolicitacaoAulaResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Aula ou turma de outro professor, ou ação bloqueada pela escola"
+                    },
+                    "422": {
+                        "description": "Dados inválidos, aula não agendada ou passada, conflito de agenda, solicitação pendente já existente ou destino da cobrança ausente"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/aulas/{aulaTurma}/opcoes-solicitacao": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "O que o professor pode pedir para a aula: permissões da escola, cobrança e solicitação pendente",
+                "operationId": "76b071b9d6faa8c7d40ef2d38f208abe",
+                "parameters": [
+                    {
+                        "name": "aulaTurma",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Opções",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "permissoes": {
+                                                    "$ref": "#/components/schemas/UpdatePermissoesProfessorRequest"
+                                                },
+                                                "tem_cobranca": {
+                                                    "description": "A aula tem cobrança avulsa: ao cancelar ou repor, o professor escolhe o destino",
+                                                    "type": "boolean"
+                                                },
+                                                "proxima_aula_cobranca": {
+                                                    "description": "Aula que receberia a cobrança no cancelamento",
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "solicitacao_pendente": {
+                                                    "oneOf": [
+                                                        {
+                                                            "$ref": "#/components/schemas/SolicitacaoAulaResource"
+                                                        }
+                                                    ],
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Aula que o professor não leciona"
+                    },
+                    "404": {
+                        "description": "Aula não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/solicitacoes/{solicitacaoAula}": {
+            "delete": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Cancelar solicitação de aula ainda pendente (somente o autor)",
+                "operationId": "04d31ec1b09dc960fa7e0a9b1f1813ab",
+                "parameters": [
+                    {
+                        "name": "solicitacaoAula",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Solicitação cancelada"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Solicitação de outro professor"
+                    },
+                    "404": {
+                        "description": "Solicitação não encontrada"
+                    },
+                    "422": {
+                        "description": "Solicitação já decidida"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/solicitacoes-aulas": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Solicitações de aula dos professores (fila da secretaria)",
+                "operationId": "8034764f9490a5a9e50352dd4c0a5306",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Padrão: pendente",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pendente",
+                                "aprovada",
+                                "rejeitada",
+                                "cancelada",
+                                "todas"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "tipo",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "criacao",
+                                "cancelamento",
+                                "reposicao",
+                                "substituicao"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Nome do professor",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Solicitações paginadas (15 por página); pendentes trazem a análise (avisos, cobrança, disponibilidade)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/SolicitacaoAulaResource"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Papel sem acesso"
+                    },
+                    "422": {
+                        "description": "Filtro inválido"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/solicitacoes-aulas/{solicitacaoAula}/decisao": {
+            "post": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Aprovar (com ajustes opcionais) ou rejeitar solicitação de aula",
+                "operationId": "01b27b364aabe85781585e9eb3fe99b6",
+                "parameters": [
+                    {
+                        "name": "solicitacaoAula",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DecidirSolicitacaoAulaRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Solicitação decidida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/SolicitacaoAulaResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Papel sem acesso"
+                    },
+                    "404": {
+                        "description": "Solicitação não encontrada"
+                    },
+                    "422": {
+                        "description": "Já decidida, aula não mais agendada, conflito de agenda, substituto ou destino da cobrança ausente, cobrança já paga ou motivo da rejeição ausente"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/professor/me/niveis": {
             "get": {
                 "tags": [
@@ -3366,6 +4601,91 @@
                 ]
             }
         },
+        "/api/instituicao/comunicacao-professor": {
+            "get": {
+                "tags": [
+                    "Instituição"
+                ],
+                "summary": "Limite diário de avisos que cada professor pode enviar a alunos e responsáveis",
+                "operationId": "438c63abc0704823e4bb44dc2a37761d",
+                "responses": {
+                    "200": {
+                        "description": "Configuração da escola (padrão: 10 por dia)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/UpdateComunicacaoProfessorRequest"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apenas administradores"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Instituição"
+                ],
+                "summary": "Define o limite diário de avisos por professor",
+                "operationId": "adb70380c11ee89ed6cb8d99acd4fb2b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateComunicacaoProfessorRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Configuração salva",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/UpdateComunicacaoProfessorRequest"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apenas administradores"
+                    },
+                    "422": {
+                        "description": "Limite fora do intervalo permitido"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/configuracao-empresa": {
             "get": {
                 "tags": [
@@ -3740,6 +5060,124 @@
                 ]
             }
         },
+        "/api/instituicao/modulos": {
+            "get": {
+                "tags": [
+                    "Instituição"
+                ],
+                "summary": "Lista os módulos do catálogo com a situação na escola (contratado, ativo e se pode ser desligado)",
+                "operationId": "95bdb56036f1d7bf9b5a895454ea120f",
+                "parameters": [
+                    {
+                        "name": "X-Tenant-Slug",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ModuloInstituicaoResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "modulos_ativos": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Somente o admin da escola"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/instituicao/modulos/{modulo}": {
+            "put": {
+                "tags": [
+                    "Instituição"
+                ],
+                "summary": "Liga ou desliga um módulo opcional na escola (desligar só oculta; nenhum dado é apagado)",
+                "operationId": "8bb92e759325b6b9d9e0d55793ff008d",
+                "parameters": [
+                    {
+                        "name": "modulo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "progressao"
+                        }
+                    },
+                    {
+                        "name": "X-Tenant-Slug",
+                        "in": "header",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateModuloInstituicaoRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Lista atualizada (mesmo formato do GET)"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Somente o admin da escola"
+                    },
+                    "422": {
+                        "description": "Módulo não desligável ou fora do plano"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/forgot-password": {
             "post": {
                 "tags": [
@@ -3798,6 +5236,91 @@
                         "description": "Erro de validação"
                     }
                 }
+            }
+        },
+        "/api/instituicao/permissoes-professor": {
+            "get": {
+                "tags": [
+                    "Instituição"
+                ],
+                "summary": "O que os professores podem fazer com as aulas: livre, com aprovação da secretaria ou bloqueado",
+                "operationId": "638fef5fa3c36157a73c01389249689b",
+                "responses": {
+                    "200": {
+                        "description": "Permissões da escola",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/UpdatePermissoesProfessorRequest"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apenas administradores"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Instituição"
+                ],
+                "summary": "Define o que os professores podem fazer com as aulas",
+                "operationId": "6fd784d8f418bf45fc2275e9f33b40db",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdatePermissoesProfessorRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Permissões salvas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/UpdatePermissoesProfessorRequest"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apenas administradores"
+                    },
+                    "422": {
+                        "description": "Modo inválido"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/platform/config": {
@@ -4848,6 +6371,9 @@
                             }
                         }
                     },
+                    "403": {
+                        "description": "Participação em apresentação que não envolve o professor"
+                    },
                     "404": {
                         "description": "Associação não encontrada"
                     }
@@ -5105,6 +6631,9 @@
                             }
                         }
                     },
+                    "403": {
+                        "description": "Apresentação sem turma ou alunos do professor"
+                    },
                     "404": {
                         "description": "Apresentação não encontrada"
                     }
@@ -5187,6 +6716,330 @@
                     },
                     "404": {
                         "description": "Apresentação não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/apresentacoes": {
+            "get": {
+                "tags": [
+                    "Espetaculos"
+                ],
+                "summary": "Minhas apresentações: das turmas do professor ou com participação de alunos seus",
+                "operationId": "81d965dba5f393986c5979bffc9e6ec0",
+                "parameters": [
+                    {
+                        "name": "situacao",
+                        "in": "query",
+                        "description": "proximas (padrão: espetáculo de hoje em diante), passadas ou todas",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "proximas",
+                                "passadas",
+                                "todas"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Apresentações por data do espetáculo e ordem de entrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ApresentacaoDoProfessorResource"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Não é professor ou módulo de espetáculos indisponível"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/apresentacoes/{apresentacao}": {
+            "get": {
+                "tags": [
+                    "Espetaculos"
+                ],
+                "summary": "Detalhe da apresentação para o professor: participantes (sem valores de figurino) e ensaios",
+                "operationId": "b2fbfa234b7d2cafeaaee1f1390f05d5",
+                "parameters": [
+                    {
+                        "name": "apresentacao",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Apresentação",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ApresentacaoDoProfessorResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apresentação sem turma ou alunos do professor"
+                    },
+                    "404": {
+                        "description": "Apresentação não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/ensaios": {
+            "get": {
+                "tags": [
+                    "Espetaculos"
+                ],
+                "summary": "Agenda de ensaios (professor: os que conduz e os das apresentações das suas turmas ou com alunos seus)",
+                "operationId": "7e0a1f3db0ea6399ca96b6029cfd9ff9",
+                "parameters": [
+                    {
+                        "name": "id_apresentacao",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "data_inicio",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "data_fim",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ensaios em ordem cronológica",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/EnsaioResource"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Papel sem acesso ou módulo de espetáculos indisponível"
+                    },
+                    "422": {
+                        "description": "Filtros inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Espetaculos"
+                ],
+                "summary": "Agendar ensaio de uma apresentação",
+                "operationId": "7d8062cc0314b421bcf9a45acc312283",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreEnsaioRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Ensaio agendado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/EnsaioResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apresentação sem turma ou alunos do professor"
+                    },
+                    "422": {
+                        "description": "Erro de validação, data após o espetáculo ou espetáculo encerrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/ensaios/{ensaio}": {
+            "put": {
+                "tags": [
+                    "Espetaculos"
+                ],
+                "summary": "Editar ensaio (professor: só os que conduz)",
+                "operationId": "857afe6f720252597b5caba9adc15ba4",
+                "parameters": [
+                    {
+                        "name": "ensaio",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateEnsaioRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Ensaio atualizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/EnsaioResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Ensaio conduzido por outro professor"
+                    },
+                    "404": {
+                        "description": "Ensaio não encontrado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Espetaculos"
+                ],
+                "summary": "Excluir ensaio (professor: só os que conduz)",
+                "operationId": "f03c2e244fcdecdf890e172afc3bf3f6",
+                "parameters": [
+                    {
+                        "name": "ensaio",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Ensaio excluído"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Ensaio conduzido por outro professor"
+                    },
+                    "404": {
+                        "description": "Ensaio não encontrado"
                     }
                 },
                 "security": [
@@ -5300,6 +7153,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Professor sem turmas ou alunos no espetáculo"
                     },
                     "404": {
                         "description": "Espetáculo não encontrado"
@@ -7359,6 +9215,503 @@
                     }
                 ]
             }
+        },
+        "/api/professor/me/extrato": {
+            "get": {
+                "tags": [
+                    "Relatorios"
+                ],
+                "summary": "Meus ganhos: extrato mensal do professor logado (fixo + hora-aula + comissão)",
+                "operationId": "3a2a45a0a33f88f1c1cd22c99c718703",
+                "parameters": [
+                    {
+                        "name": "mes",
+                        "in": "query",
+                        "description": "Competência (padrão: mês atual). Meses futuros não são aceitos.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-09"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Extrato do mês",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ExtratoProfessor"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apenas professores"
+                    },
+                    "422": {
+                        "description": "Mês inválido ou futuro"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/relatorios/frequencia": {
+            "get": {
+                "tags": [
+                    "Relatorios"
+                ],
+                "summary": "Frequência e alunos em risco nas aulas do professor (turmas e aulas individuais)",
+                "operationId": "af5fe7f3ad3ab5b377f028eec3e1a16b",
+                "parameters": [
+                    {
+                        "name": "data_inicio",
+                        "in": "query",
+                        "description": "Padrão: início do mês atual",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "data_fim",
+                        "in": "query",
+                        "description": "Padrão: fim do mês atual",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "id_turma",
+                        "in": "query",
+                        "description": "Restringe a uma turma do professor",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "limite_faltas",
+                        "in": "query",
+                        "description": "Faltas consecutivas para considerar o aluno em risco (padrão 3)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 20,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Frequência por aluno, em ordem alfabética",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "description": "ID do aluno",
+                                                        "type": "integer",
+                                                        "example": 12
+                                                    },
+                                                    "nome_aluno": {
+                                                        "type": "string",
+                                                        "example": "Bruno Souza"
+                                                    },
+                                                    "total_aulas": {
+                                                        "description": "Aulas com chamada no período",
+                                                        "type": "integer",
+                                                        "example": 8
+                                                    },
+                                                    "total_presencas": {
+                                                        "type": "integer",
+                                                        "example": 5
+                                                    },
+                                                    "total_faltas": {
+                                                        "description": "Inclui as justificadas",
+                                                        "type": "integer",
+                                                        "example": 3
+                                                    },
+                                                    "total_justificadas": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "taxa_absenteismo": {
+                                                        "type": "number",
+                                                        "format": "float",
+                                                        "example": 37.5
+                                                    },
+                                                    "faltas_consecutivas": {
+                                                        "description": "Faltas não justificadas seguidas até o fim do período (ou hoje)",
+                                                        "type": "integer",
+                                                        "example": 2
+                                                    },
+                                                    "em_risco": {
+                                                        "type": "boolean",
+                                                        "example": false
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "summary": {
+                                            "properties": {
+                                                "total_alunos": {
+                                                    "type": "integer"
+                                                },
+                                                "media_absenteismo": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                },
+                                                "alunos_em_risco": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "filters": {
+                                            "properties": {
+                                                "data_inicio": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "data_fim": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "id_turma": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "limite_faltas": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Turma de outro professor"
+                    },
+                    "422": {
+                        "description": "Filtros inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/relatorios/professores/remuneracao": {
+            "get": {
+                "tags": [
+                    "Relatorios"
+                ],
+                "summary": "Remuneração do mês de todos os professores (resumo e situação do fechamento)",
+                "operationId": "0490802ff2222893ca1a6ea8ca8fc492",
+                "parameters": [
+                    {
+                        "name": "mes",
+                        "in": "query",
+                        "description": "Competência (padrão: mês atual)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-09"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Professores em ordem alfabética",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "professor": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "nome": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    },
+                                                    "situacao": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "em_andamento",
+                                                            "aberto",
+                                                            "fechado"
+                                                        ]
+                                                    },
+                                                    "resumo": {
+                                                        "$ref": "#/components/schemas/ResumoRemuneracao"
+                                                    },
+                                                    "fechamento": {
+                                                        "$ref": "#/components/schemas/FechamentoRemuneracao"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "competencia": {
+                                            "type": "string",
+                                            "example": "2026-09"
+                                        },
+                                        "total": {
+                                            "description": "Soma de valor_total de todos os professores",
+                                            "type": "number",
+                                            "format": "float"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apenas administradores"
+                    },
+                    "422": {
+                        "description": "Mês inválido ou futuro"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/relatorios/professores/{professor}/extrato": {
+            "get": {
+                "tags": [
+                    "Relatorios"
+                ],
+                "summary": "Extrato mensal de um professor (visão do administrador)",
+                "operationId": "1cb20cd943830e9bfad197d5bf2c0f9a",
+                "parameters": [
+                    {
+                        "name": "professor",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "mes",
+                        "in": "query",
+                        "description": "Competência (padrão: mês atual)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-09"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Extrato do mês",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ExtratoProfessor"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apenas administradores"
+                    },
+                    "404": {
+                        "description": "Professor de outra instituição ou inexistente"
+                    },
+                    "422": {
+                        "description": "Mês inválido ou futuro"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/relatorios/professores/{professor}/fechamentos": {
+            "post": {
+                "tags": [
+                    "Relatorios"
+                ],
+                "summary": "Fecha o mês do professor: congela o extrato e lança a despesa no Financeiro",
+                "description": "Só meses encerrados. A despesa (categoria \"Pagamento de professores\") é criada quando o total é maior que zero e a escola tem o módulo financeiro.",
+                "operationId": "24eb85178a010bd3882419dfef30169b",
+                "parameters": [
+                    {
+                        "name": "professor",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "mes"
+                                ],
+                                "properties": {
+                                    "mes": {
+                                        "type": "string",
+                                        "example": "2026-09"
+                                    },
+                                    "data_vencimento": {
+                                        "description": "Padrão: dia 5 do mês seguinte (ou hoje, se já passou)",
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Extrato fechado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ExtratoProfessor"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apenas administradores"
+                    },
+                    "404": {
+                        "description": "Professor de outra instituição ou inexistente"
+                    },
+                    "422": {
+                        "description": "Mês em andamento, futuro ou já fechado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/relatorios/professores/{professor}/fechamentos/{fechamento}": {
+            "delete": {
+                "tags": [
+                    "Relatorios"
+                ],
+                "summary": "Reabre o mês: desfaz o fechamento e exclui a despesa ainda não paga",
+                "operationId": "56b25d1bb5258aae0e89e5f9fd53b197",
+                "parameters": [
+                    {
+                        "name": "professor",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "fechamento",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Mês reaberto"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Apenas administradores"
+                    },
+                    "404": {
+                        "description": "Fechamento de outro professor ou instituição"
+                    },
+                    "422": {
+                        "description": "A despesa já tem pagamentos registrados"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -7710,6 +10063,58 @@
                 },
                 "type": "object"
             },
+            "StoreAvisoTurmaRequest": {
+                "required": [
+                    "titulo",
+                    "mensagem",
+                    "publico",
+                    "canais"
+                ],
+                "properties": {
+                    "id_turma": {
+                        "description": "Turma inteira (matrículas vigentes); obrigatório sem ids_alunos",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "ids_alunos": {
+                        "description": "Alunos escolhidos (da turma, se informada; senão, alunos do professor)",
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "nullable": true
+                    },
+                    "publico": {
+                        "description": "Aluno sem contato no canal é avisado pelos responsáveis",
+                        "type": "string",
+                        "enum": [
+                            "alunos",
+                            "responsaveis",
+                            "ambos"
+                        ]
+                    },
+                    "canais": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "email",
+                                "whatsapp"
+                            ]
+                        }
+                    },
+                    "titulo": {
+                        "type": "string",
+                        "maxLength": 120,
+                        "example": "Ensaio extra no sábado"
+                    },
+                    "mensagem": {
+                        "type": "string",
+                        "maxLength": 2000
+                    }
+                },
+                "type": "object"
+            },
             "StoreCursoRequest": {
                 "required": [
                     "nome"
@@ -7739,6 +10144,43 @@
                         "type": "string",
                         "example": "Curso de violoncelo intermediário",
                         "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "SalvarDisponibilidadesRequest": {
+                "required": [
+                    "disponibilidades"
+                ],
+                "properties": {
+                    "disponibilidades": {
+                        "description": "Substitui todas as janelas do professor. Lista vazia remove a disponibilidade.",
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "dia_semana": {
+                                    "type": "string",
+                                    "enum": [
+                                        "segunda",
+                                        "terca",
+                                        "quarta",
+                                        "quinta",
+                                        "sexta",
+                                        "sabado",
+                                        "domingo"
+                                    ]
+                                },
+                                "hora_inicio": {
+                                    "type": "string",
+                                    "example": "08:00"
+                                },
+                                "hora_termino": {
+                                    "type": "string",
+                                    "example": "12:00"
+                                }
+                            },
+                            "type": "object"
+                        }
                     }
                 },
                 "type": "object"
@@ -8114,6 +10556,144 @@
                     "visivel_responsavel": {
                         "type": "boolean",
                         "example": true
+                    }
+                },
+                "type": "object"
+            },
+            "DecidirSolicitacaoAulaRequest": {
+                "description": "Ao aprovar, os campos de ajuste (opcionais) substituem o que o professor sugeriu.",
+                "required": [
+                    "decisao"
+                ],
+                "properties": {
+                    "decisao": {
+                        "type": "string",
+                        "enum": [
+                            "aprovada",
+                            "rejeitada"
+                        ]
+                    },
+                    "motivo_decisao": {
+                        "description": "Obrigatório ao rejeitar",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "data_sugerida": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "hora_inicio_sugerida": {
+                        "type": "string",
+                        "example": "14:00",
+                        "nullable": true
+                    },
+                    "hora_termino_sugerida": {
+                        "type": "string",
+                        "example": "15:00",
+                        "nullable": true
+                    },
+                    "id_professor_substituto": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "destino_cobranca": {
+                        "type": "string",
+                        "enum": [
+                            "proxima_aula",
+                            "cancelar"
+                        ],
+                        "nullable": true
+                    },
+                    "avisar_alunos": {
+                        "description": "Ao aprovar: avisa alunos e responsáveis (padrão: o que o professor pediu)",
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "StoreSolicitacaoAulaRequest": {
+                "required": [
+                    "tipo"
+                ],
+                "properties": {
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "criacao",
+                            "cancelamento",
+                            "reposicao",
+                            "substituicao"
+                        ]
+                    },
+                    "id_aula_turma": {
+                        "description": "Obrigatório, exceto na criação",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "motivo": {
+                        "description": "Obrigatório, exceto na criação",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "data_sugerida": {
+                        "description": "Reposição e criação",
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "hora_inicio_sugerida": {
+                        "type": "string",
+                        "example": "14:00",
+                        "nullable": true
+                    },
+                    "hora_termino_sugerida": {
+                        "type": "string",
+                        "example": "15:00",
+                        "nullable": true
+                    },
+                    "id_professor_substituto": {
+                        "description": "Substituição (opcional quando a escola exige aprovação: a secretaria escolhe)",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "id_turma": {
+                        "description": "Criação: aula de uma turma do professor",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "id_aluno_especifico": {
+                        "description": "Criação: aula individual (com id_curso)",
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "id_curso": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "tipo_aula": {
+                        "type": "string",
+                        "enum": [
+                            "regular",
+                            "reposicao",
+                            "reforco",
+                            "extra"
+                        ],
+                        "nullable": true
+                    },
+                    "destino_cobranca": {
+                        "description": "Obrigatório no cancelamento ou reposição de aula com cobrança",
+                        "type": "string",
+                        "enum": [
+                            "proxima_aula",
+                            "cancelar"
+                        ],
+                        "nullable": true
+                    },
+                    "avisar_alunos": {
+                        "description": "Cancelamento, reposição e substituição: avisa alunos e responsáveis quando a alteração for aplicada",
+                        "type": "boolean",
+                        "default": true
                     }
                 },
                 "type": "object"
@@ -8595,6 +11175,9 @@
                                 "curso": {
                                     "description": "Curso da matrícula (tipo curso) ou da turma",
                                     "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
                                         "nome": {
                                             "type": "string"
                                         }
@@ -8853,6 +11436,174 @@
                 },
                 "type": "object"
             },
+            "AvisoTurmaResource": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "titulo": {
+                        "type": "string"
+                    },
+                    "mensagem": {
+                        "type": "string"
+                    },
+                    "publico": {
+                        "type": "string",
+                        "enum": [
+                            "alunos",
+                            "responsaveis",
+                            "ambos"
+                        ]
+                    },
+                    "canais": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "email",
+                                "whatsapp"
+                            ]
+                        }
+                    },
+                    "origem": {
+                        "description": "aula_alterada: enviado ao cancelar, repor ou trocar o professor de uma aula",
+                        "type": "string",
+                        "enum": [
+                            "manual",
+                            "aula_alterada"
+                        ]
+                    },
+                    "turma": {
+                        "description": "Nulo quando o aviso foi para alunos escolhidos",
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "nome": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "professor": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "nome": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "autor": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "nome": {
+                                "type": "string"
+                            },
+                            "role": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "id_aula_turma": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "enviado_em": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "totais": {
+                        "description": "Presente na listagem e no detalhe",
+                        "properties": {
+                            "alunos": {
+                                "type": "integer"
+                            },
+                            "destinatarios": {
+                                "description": "Pessoa × canal",
+                                "type": "integer"
+                            },
+                            "enviados": {
+                                "type": "integer"
+                            },
+                            "pendentes": {
+                                "type": "integer"
+                            },
+                            "erros": {
+                                "type": "integer"
+                            },
+                            "sem_contato": {
+                                "type": "integer"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "destinatarios": {
+                        "description": "Somente no detalhe",
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "nome": {
+                                    "type": "string"
+                                },
+                                "tipo": {
+                                    "type": "string",
+                                    "enum": [
+                                        "aluno",
+                                        "responsavel"
+                                    ]
+                                },
+                                "aluno": {
+                                    "description": "Aluno pelo qual o responsável foi avisado",
+                                    "type": "string",
+                                    "nullable": true
+                                },
+                                "canal": {
+                                    "type": "string",
+                                    "enum": [
+                                        "email",
+                                        "whatsapp"
+                                    ]
+                                },
+                                "destino": {
+                                    "type": "string",
+                                    "nullable": true
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "pendente",
+                                        "enviado",
+                                        "erro",
+                                        "sem_contato"
+                                    ]
+                                },
+                                "erro": {
+                                    "type": "string",
+                                    "nullable": true
+                                },
+                                "enviado_em": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
             "CursoResource": {
                 "properties": {
                     "id": {
@@ -8867,6 +11618,37 @@
                         "type": "string",
                         "example": "Curso de violino para iniciantes",
                         "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "DisponibilidadeProfessorResource": {
+                "title": "DisponibilidadeProfessorResource",
+                "description": "Janela semanal de disponibilidade do professor",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "dia_semana": {
+                        "type": "string",
+                        "enum": [
+                            "segunda",
+                            "terca",
+                            "quarta",
+                            "quinta",
+                            "sexta",
+                            "sabado",
+                            "domingo"
+                        ]
+                    },
+                    "hora_inicio": {
+                        "type": "string",
+                        "example": "08:00"
+                    },
+                    "hora_termino": {
+                        "type": "string",
+                        "example": "12:00"
                     }
                 },
                 "type": "object"
@@ -9461,6 +12243,262 @@
                     },
                     "whatsapp": {
                         "type": "string",
+                        "nullable": true
+                    },
+                    "permissoes_aulas": {
+                        "$ref": "#/components/schemas/UpdatePermissoesProfessorRequest"
+                    }
+                },
+                "type": "object"
+            },
+            "SolicitacaoAulaResource": {
+                "title": "SolicitacaoAulaResource",
+                "description": "Solicitação do professor para criar, cancelar, repor ou passar uma aula a um substituto",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "criacao",
+                            "cancelamento",
+                            "reposicao",
+                            "substituicao"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pendente",
+                            "aprovada",
+                            "rejeitada",
+                            "cancelada"
+                        ]
+                    },
+                    "aplicada_automaticamente": {
+                        "description": "Aplicada sem aprovação porque a escola deixa a ação livre",
+                        "type": "boolean"
+                    },
+                    "motivo": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "data_sugerida": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "hora_inicio_sugerida": {
+                        "type": "string",
+                        "example": "14:00",
+                        "nullable": true
+                    },
+                    "hora_termino_sugerida": {
+                        "type": "string",
+                        "example": "15:00",
+                        "nullable": true
+                    },
+                    "destino_cobranca": {
+                        "type": "string",
+                        "enum": [
+                            "proxima_aula",
+                            "cancelar"
+                        ],
+                        "nullable": true
+                    },
+                    "avisar_alunos": {
+                        "description": "Alunos e responsáveis são avisados quando a alteração é aplicada",
+                        "type": "boolean"
+                    },
+                    "motivo_decisao": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "decidido_em": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "pode_cancelar": {
+                        "type": "boolean"
+                    },
+                    "aula": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/SolicitacaoAulaResumoAula"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "aula_gerada": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/SolicitacaoAulaResumoAula"
+                            }
+                        ],
+                        "nullable": true,
+                        "description": "Aula criada pela reposição ou criação"
+                    },
+                    "nova_aula": {
+                        "description": "Somente na criação",
+                        "properties": {
+                            "tipo_aula": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "turma": {
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "titulo": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object",
+                                "nullable": true
+                            },
+                            "curso": {
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "nome": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object",
+                                "nullable": true
+                            },
+                            "aluno": {
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "nome": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object",
+                                "nullable": true
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "professor": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "nome": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "substituto": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "nome": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "decisor": {
+                        "properties": {
+                            "nome": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "analise": {
+                        "description": "Somente em solicitações pendentes",
+                        "properties": {
+                            "avisos": {
+                                "description": "Conflitos e horários fora da disponibilidade (não impedem a decisão, exceto conflito)",
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "tem_cobranca": {
+                                "type": "boolean"
+                            },
+                            "proxima_aula_cobranca": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "disponibilidade": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/DisponibilidadeProfessorResource"
+                                }
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "SolicitacaoAulaResumoAula": {
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "data": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "hora_inicio": {
+                        "type": "string",
+                        "example": "14:00"
+                    },
+                    "hora_termino": {
+                        "type": "string",
+                        "example": "15:00"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "tipo": {
+                        "type": "string"
+                    },
+                    "titulo": {
+                        "description": "Curso e nível da turma, ou \"Aula individual\"",
+                        "type": "string"
+                    },
+                    "id_turma": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "aluno": {
+                        "description": "Aluno da aula individual",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "professor": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "nome": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
                         "nullable": true
                     }
                 },
@@ -10674,6 +13712,72 @@
                 },
                 "type": "object"
             },
+            "UpdateComunicacaoProfessorRequest": {
+                "required": [
+                    "limite_avisos_dia"
+                ],
+                "properties": {
+                    "limite_avisos_dia": {
+                        "description": "Avisos manuais que cada professor pode enviar por dia (os automáticos de alteração de aula não contam)",
+                        "type": "integer",
+                        "maximum": 100,
+                        "minimum": 1,
+                        "example": 10
+                    }
+                },
+                "type": "object"
+            },
+            "UpdateModuloInstituicaoRequest": {
+                "required": [
+                    "ativo"
+                ],
+                "properties": {
+                    "ativo": {
+                        "type": "boolean",
+                        "example": false
+                    }
+                },
+                "type": "object"
+            },
+            "UpdatePermissoesProfessorRequest": {
+                "required": [
+                    "criar",
+                    "editar",
+                    "excluir"
+                ],
+                "properties": {
+                    "criar": {
+                        "type": "string",
+                        "enum": [
+                            "livre",
+                            "aprovacao",
+                            "bloqueado"
+                        ],
+                        "example": "livre"
+                    },
+                    "editar": {
+                        "description": "Remarcar (reposição) e trocar o professor (substituição)",
+                        "type": "string",
+                        "enum": [
+                            "livre",
+                            "aprovacao",
+                            "bloqueado"
+                        ],
+                        "example": "aprovacao"
+                    },
+                    "excluir": {
+                        "description": "Cancelar ou excluir aulas",
+                        "type": "string",
+                        "enum": [
+                            "livre",
+                            "aprovacao",
+                            "bloqueado"
+                        ],
+                        "example": "aprovacao"
+                    }
+                },
+                "type": "object"
+            },
             "StorePlatformDepoimentoRequest": {
                 "required": [
                     "nome",
@@ -11226,12 +14330,49 @@
                         "nullable": true
                     },
                     "modulos": {
+                        "description": "Módulos ativos: contratados e não desligados pela escola",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "modulos_contratados": {
+                        "description": "Módulos incluídos no plano (ou liberados pelo trial)",
                         "type": "array",
                         "items": {
                             "type": "string"
                         }
                     },
                     "em_trial": {
+                        "type": "boolean"
+                    }
+                },
+                "type": "object"
+            },
+            "ModuloInstituicaoResource": {
+                "description": "Módulo do catálogo e sua situação na escola atual",
+                "properties": {
+                    "key": {
+                        "type": "string",
+                        "example": "progressao"
+                    },
+                    "label": {
+                        "type": "string",
+                        "example": "Progressão de nível"
+                    },
+                    "descricao": {
+                        "type": "string"
+                    },
+                    "contratado": {
+                        "description": "Incluído no plano ou liberado pelo trial",
+                        "type": "boolean"
+                    },
+                    "ativo": {
+                        "description": "Contratado e não desligado pela escola",
+                        "type": "boolean"
+                    },
+                    "desativavel": {
+                        "description": "A escola pode ligar ou desligar",
                         "type": "boolean"
                     }
                 },
@@ -11769,6 +14910,95 @@
                 },
                 "type": "object"
             },
+            "StoreEnsaioRequest": {
+                "title": "Store Ensaio Request",
+                "description": "Agendamento de ensaio de uma apresentação. Para o professor, o condutor é sempre ele mesmo.",
+                "required": [
+                    "id_apresentacao",
+                    "data",
+                    "hora_inicio",
+                    "hora_termino"
+                ],
+                "properties": {
+                    "id_apresentacao": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "id_professor": {
+                        "description": "Condutor do ensaio (só a secretaria escolhe; ignorado para o professor)",
+                        "type": "integer",
+                        "example": 2,
+                        "nullable": true
+                    },
+                    "data": {
+                        "description": "De hoje até a data do espetáculo",
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-11-10"
+                    },
+                    "hora_inicio": {
+                        "type": "string",
+                        "example": "14:00"
+                    },
+                    "hora_termino": {
+                        "type": "string",
+                        "example": "15:30"
+                    },
+                    "local": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "example": "Sala 2",
+                        "nullable": true
+                    },
+                    "observacoes": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "UpdateEnsaioRequest": {
+                "title": "Update Ensaio Request",
+                "description": "Edição de ensaio (a apresentação não muda). Hora de início e término devem ser enviadas juntas.",
+                "required": [
+                    "data",
+                    "hora_inicio",
+                    "hora_termino"
+                ],
+                "properties": {
+                    "id_professor": {
+                        "description": "Só a secretaria altera o condutor",
+                        "type": "integer",
+                        "example": 2,
+                        "nullable": true
+                    },
+                    "data": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-11-12"
+                    },
+                    "hora_inicio": {
+                        "type": "string",
+                        "example": "14:00"
+                    },
+                    "hora_termino": {
+                        "type": "string",
+                        "example": "15:30"
+                    },
+                    "local": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "nullable": true
+                    },
+                    "observacoes": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
             "StoreEspetaculoRequest": {
                 "title": "Store Espetaculo Request",
                 "description": "Parâmetros para criação de um espetáculo",
@@ -11855,7 +15085,7 @@
             },
             "ApresentacaoAlunoResource": {
                 "title": "ApresentacaoAlunoResource",
-                "description": "Recurso de Apresentação Aluno",
+                "description": "Recurso de Apresentação Aluno. `valor_figurino`, `pago_figurino` e `fatura_gerada` são omitidos para o professor.",
                 "properties": {
                     "id": {
                         "type": "integer"
@@ -11911,6 +15141,171 @@
                         "type": "string",
                         "format": "date-time",
                         "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ApresentacaoDoProfessorResource": {
+                "title": "ApresentacaoDoProfessorResource",
+                "description": "Apresentação vista pelo professor, sem valores de figurino. `participantes` e `ensaios` só vêm no detalhe.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "titulo_musica": {
+                        "type": "string",
+                        "example": "Asa Branca",
+                        "nullable": true
+                    },
+                    "ordem_entrada": {
+                        "type": "integer",
+                        "example": 4,
+                        "nullable": true
+                    },
+                    "duracao_estimada": {
+                        "type": "string",
+                        "example": "00:05:00",
+                        "nullable": true
+                    },
+                    "espetaculo": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "titulo": {
+                                "type": "string"
+                            },
+                            "data_evento": {
+                                "type": "string",
+                                "format": "date"
+                            },
+                            "local": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "status": {
+                                "type": "string",
+                                "enum": [
+                                    "planejamento",
+                                    "ensaios",
+                                    "concluido",
+                                    "cancelado"
+                                ]
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "turma": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "descricao": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "curso": {
+                                "properties": {
+                                    "nome": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object",
+                                "nullable": true
+                            },
+                            "nivel": {
+                                "properties": {
+                                    "nome": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object",
+                                "nullable": true
+                            },
+                            "minha": {
+                                "description": "Se a turma é do professor autenticado",
+                                "type": "boolean"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "total_participantes": {
+                        "type": "integer",
+                        "example": 12
+                    },
+                    "meus_alunos": {
+                        "description": "Participantes com matrícula vigente com o professor",
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "proximo_ensaio": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "data": {
+                                "type": "string",
+                                "format": "date"
+                            },
+                            "hora_inicio": {
+                                "type": "string"
+                            },
+                            "hora_termino": {
+                                "type": "string"
+                            },
+                            "local": {
+                                "type": "string",
+                                "nullable": true
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "ensaios_futuros": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "pode_agendar_ensaio": {
+                        "type": "boolean"
+                    },
+                    "participantes": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "id_aluno": {
+                                    "type": "integer"
+                                },
+                                "nome": {
+                                    "type": "string",
+                                    "nullable": true
+                                },
+                                "meu_aluno": {
+                                    "type": "boolean"
+                                },
+                                "tamanho_figurino": {
+                                    "type": "string",
+                                    "nullable": true
+                                },
+                                "recebeu_figurino": {
+                                    "type": "boolean"
+                                },
+                                "presenca_ensaio_geral": {
+                                    "type": "boolean"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "ensaios": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/EnsaioResource"
+                        }
                     }
                 },
                 "type": "object"
@@ -11983,6 +15378,107 @@
                         "type": "string",
                         "format": "date-time",
                         "example": "2026-02-25 10:00:00",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "EnsaioResource": {
+                "title": "EnsaioResource",
+                "description": "Ensaio de uma apresentação",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "id_apresentacao": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "id_professor": {
+                        "type": "integer",
+                        "example": 2,
+                        "nullable": true
+                    },
+                    "data": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-11-10"
+                    },
+                    "hora_inicio": {
+                        "type": "string",
+                        "example": "14:00"
+                    },
+                    "hora_termino": {
+                        "type": "string",
+                        "example": "15:30"
+                    },
+                    "local": {
+                        "type": "string",
+                        "example": "Sala 2",
+                        "nullable": true
+                    },
+                    "observacoes": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "pode_editar": {
+                        "description": "Se o usuário autenticado pode editar/excluir",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "professor": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "nome": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "apresentacao": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "titulo_musica": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "turma": {
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "descricao": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object",
+                                "nullable": true
+                            },
+                            "espetaculo": {
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "titulo": {
+                                        "type": "string"
+                                    },
+                                    "data_evento": {
+                                        "type": "string",
+                                        "format": "date"
+                                    }
+                                },
+                                "type": "object",
+                                "nullable": true
+                            }
+                        },
+                        "type": "object",
                         "nullable": true
                     }
                 },
@@ -13559,6 +17055,316 @@
                 "xml": {
                     "name": "Responsavel"
                 }
+            },
+            "TurmaRemuneracao": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "descricao": {
+                        "type": "string",
+                        "example": "Turma A",
+                        "nullable": true
+                    },
+                    "curso": {
+                        "properties": {
+                            "nome": {
+                                "type": "string",
+                                "example": "Violão"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "nivel": {
+                        "properties": {
+                            "nome": {
+                                "type": "string",
+                                "example": "Iniciante"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object",
+                "nullable": true
+            },
+            "ResumoRemuneracao": {
+                "properties": {
+                    "salario_fixo": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 1000
+                    },
+                    "total_aulas": {
+                        "type": "integer",
+                        "example": 12
+                    },
+                    "total_horas": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 15.5
+                    },
+                    "valor_hora_aula": {
+                        "description": "Total de hora-aula do mês",
+                        "type": "number",
+                        "format": "float",
+                        "example": 775
+                    },
+                    "base_comissao": {
+                        "description": "Total pago pelos alunos no mês",
+                        "type": "number",
+                        "format": "float",
+                        "example": 2400
+                    },
+                    "valor_comissao": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 480
+                    },
+                    "valor_total": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 2255
+                    }
+                },
+                "type": "object"
+            },
+            "FechamentoRemuneracao": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "fechado_em": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "fechado_por": {
+                        "type": "string",
+                        "example": "Administrador",
+                        "nullable": true
+                    },
+                    "conta": {
+                        "description": "Despesa gerada no Financeiro (nula sem o módulo ou com total zero)",
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 90
+                            },
+                            "status": {
+                                "type": "string",
+                                "enum": [
+                                    "pendente",
+                                    "pago",
+                                    "pago_parcialmente",
+                                    "vencido",
+                                    "cancelado"
+                                ]
+                            },
+                            "valor": {
+                                "type": "number",
+                                "format": "float",
+                                "example": 2255
+                            },
+                            "data_vencimento": {
+                                "type": "string",
+                                "format": "date",
+                                "nullable": true
+                            },
+                            "data_pagamento": {
+                                "type": "string",
+                                "format": "date",
+                                "nullable": true
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object",
+                "nullable": true
+            },
+            "ExtratoProfessor": {
+                "properties": {
+                    "competencia": {
+                        "type": "string",
+                        "example": "2026-09"
+                    },
+                    "periodo": {
+                        "properties": {
+                            "inicio": {
+                                "type": "string",
+                                "format": "date"
+                            },
+                            "fim": {
+                                "type": "string",
+                                "format": "date"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "situacao": {
+                        "description": "em_andamento: mês corrente (parcial); aberto: encerrado aguardando fechamento; fechado: valores congelados",
+                        "type": "string",
+                        "enum": [
+                            "em_andamento",
+                            "aberto",
+                            "fechado"
+                        ]
+                    },
+                    "professor": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "nome": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "regras": {
+                        "description": "Valores do cadastro do professor usados como padrão",
+                        "properties": {
+                            "salario_fixo": {
+                                "type": "number",
+                                "format": "float"
+                            },
+                            "valor_hora_aula": {
+                                "type": "number",
+                                "format": "float"
+                            },
+                            "comissao": {
+                                "description": "Percentual",
+                                "type": "number",
+                                "format": "float"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "resumo": {
+                        "$ref": "#/components/schemas/ResumoRemuneracao"
+                    },
+                    "aulas": {
+                        "description": "Aulas concluídas no mês",
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "data": {
+                                    "type": "string",
+                                    "format": "date"
+                                },
+                                "hora_inicio": {
+                                    "type": "string",
+                                    "example": "14:00"
+                                },
+                                "hora_termino": {
+                                    "type": "string",
+                                    "example": "15:30"
+                                },
+                                "tipo": {
+                                    "type": "string",
+                                    "example": "regular",
+                                    "nullable": true
+                                },
+                                "horas": {
+                                    "type": "number",
+                                    "format": "float",
+                                    "example": 1.5
+                                },
+                                "valor_hora": {
+                                    "description": "Congelado na conclusão; turma sobrepõe professor",
+                                    "type": "number",
+                                    "format": "float",
+                                    "example": 50
+                                },
+                                "valor": {
+                                    "type": "number",
+                                    "format": "float",
+                                    "example": 75
+                                },
+                                "turma": {
+                                    "$ref": "#/components/schemas/TurmaRemuneracao"
+                                },
+                                "curso": {
+                                    "description": "Curso da aula individual",
+                                    "properties": {
+                                        "nome": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object",
+                                    "nullable": true
+                                },
+                                "aluno": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "nome": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object",
+                                    "nullable": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "comissoes": {
+                        "description": "Comissão por turma (turma nula = aulas individuais)",
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "chave": {
+                                    "type": "string",
+                                    "example": "turma:3"
+                                },
+                                "turma": {
+                                    "$ref": "#/components/schemas/TurmaRemuneracao"
+                                },
+                                "base": {
+                                    "description": "Total pago no mês",
+                                    "type": "number",
+                                    "format": "float",
+                                    "example": 1200
+                                },
+                                "percentual": {
+                                    "description": "Nulo quando houve percentuais diferentes no grupo",
+                                    "type": "number",
+                                    "format": "float",
+                                    "example": 20,
+                                    "nullable": true
+                                },
+                                "valor": {
+                                    "type": "number",
+                                    "format": "float",
+                                    "example": 240
+                                },
+                                "pagamentos": {
+                                    "type": "integer",
+                                    "example": 4
+                                },
+                                "alunos": {
+                                    "type": "integer",
+                                    "example": 4
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "fechamento": {
+                        "$ref": "#/components/schemas/FechamentoRemuneracao"
+                    }
+                },
+                "type": "object"
             }
         },
         "securitySchemes": {
@@ -13605,6 +17411,10 @@
         {
             "name": "Assinatura",
             "description": "Assinatura"
+        },
+        {
+            "name": "Instituição",
+            "description": "Instituição"
         },
         {
             "name": "Public",

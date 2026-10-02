@@ -2,6 +2,7 @@
 
 namespace App\Modules\Notificacoes\Jobs;
 
+use App\Modules\Core\Events\NotificacaoProcessada;
 use App\Modules\Core\Support\InstituicaoContext;
 use App\Modules\Notificacoes\Contracts\WhatsappGatewayInterface;
 use App\Modules\Notificacoes\Exceptions\WhatsappGatewayException;
@@ -47,7 +48,7 @@ class EnviarMensagemWhatsappJob implements ShouldQueue
         $config = ConfiguracaoWhatsapp::first();
 
         if (!$config || $config->status !== WhatsappGatewayInterface::STATUS_CONNECTED) {
-            $registro->update(['status' => 'erro']);
+            $this->marcarErro($registro, 'WhatsApp não está conectado.');
             Log::warning("WhatsApp não conectado. Notificação #{$this->notificacaoId} marcada como erro.");
             return;
         }
@@ -55,7 +56,7 @@ class EnviarMensagemWhatsappJob implements ShouldQueue
         try {
             $whatsapp->sendText($config->instance_name, $this->numero, $this->mensagem);
         } catch (WhatsappGatewayException $e) {
-            $registro->update(['status' => 'erro']);
+            $this->marcarErro($registro, 'Falha ao enviar pelo WhatsApp.');
             Log::error("Erro ao enviar WhatsApp #{$this->notificacaoId}: " . $e->getMessage());
 
             if ($e->retryable) {
@@ -67,7 +68,15 @@ class EnviarMensagemWhatsappJob implements ShouldQueue
 
         $registro->update([
             'status'       => 'enviado',
+            'erro'         => null,
             'disparado_em' => Carbon::now(),
         ]);
+        NotificacaoProcessada::dispatch($registro->referencia_type, $registro->referencia_id, NotificacaoProcessada::ENVIADO);
+    }
+
+    private function marcarErro(NotificacaoDisparada $registro, string $erro): void
+    {
+        $registro->update(['status' => 'erro', 'erro' => $erro]);
+        NotificacaoProcessada::dispatch($registro->referencia_type, $registro->referencia_id, NotificacaoProcessada::ERRO, $erro);
     }
 }

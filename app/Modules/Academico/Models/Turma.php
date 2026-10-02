@@ -93,6 +93,14 @@ class Turma extends Model
         };
     }
 
+    /** Nome curto mostrado a alunos e responsáveis: a descrição ou, sem ela, curso e nível. */
+    public function apelido(): string
+    {
+        $base = collect([$this->curso?->nome, $this->nivel?->nome])->filter()->implode(' · ');
+
+        return $this->descricao ?: ($base ?: 'Turma');
+    }
+
     public function contrato()
     {
         return $this->belongsTo(\App\Models\Contrato::class, 'contrato_id');

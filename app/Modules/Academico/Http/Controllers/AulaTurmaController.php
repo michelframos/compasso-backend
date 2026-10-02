@@ -116,6 +116,7 @@ class AulaTurmaController extends Controller
     {
         $data = $request->validated();
 
+        Gate::authorize('create', [AulaTurma::class, (int) $data['id_professor']]);
         $this->checkBusinessRules(null, $data['id_turma'] ?? null);
 
         $aulas = $this->createAulaTurma->execute($data);
@@ -171,6 +172,11 @@ class AulaTurmaController extends Controller
     public function update(UpdateAulaTurmaRequest $request, AulaTurma $aulaTurma)
     {
         $this->checkBusinessRules($aulaTurma);
+        Gate::authorize('update', $aulaTurma);
+
+        if ($request->validated('status') === 'cancelada' && $aulaTurma->status !== 'cancelada') {
+            Gate::authorize('delete', $aulaTurma);
+        }
 
         $aulaTurma->update($this->snapshots->aplicarSeConcluida($request->validated(), $aulaTurma));
         return new AulaTurmaResource($aulaTurma);
@@ -192,6 +198,7 @@ class AulaTurmaController extends Controller
     public function destroy(Request $request, AulaTurma $aulaTurma)
     {
         $this->checkBusinessRules($aulaTurma);
+        Gate::authorize('delete', $aulaTurma);
 
         if ($request->boolean('excluir_conta')) {
             $aulaTurma->conta()->delete();
