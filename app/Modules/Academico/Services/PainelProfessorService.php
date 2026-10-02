@@ -100,13 +100,16 @@ class PainelProfessorService
             ->whereNotIn('status', ListTurmasDoProfessorQuery::STATUS_ENCERRADOS);
     }
 
+    /** Alunos com matrícula ativa em turmas ativas do professor ou em curso atribuído a ele. */
     private function alunosAtivos(User $user): int
     {
         $turmas = $this->turmasAtivas($user)->select('turmas.id');
 
         return Matricula::query()
             ->where('status', 'ativa')
-            ->whereIn('id_turma', $turmas)
+            ->where(fn (Builder $q) => $q
+                ->whereIn('id_turma', $turmas)
+                ->orWhere(fn (Builder $c) => $c->where('tipo', 'curso')->where('id_professor', $user->professor?->id ?? 0)))
             ->distinct()
             ->count('id_aluno');
     }

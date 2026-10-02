@@ -3,6 +3,8 @@
 namespace App\Modules\Core\Providers;
 
 use App\Models\User as LegacyUserAlias;
+use App\Modules\Core\Adapters\Cep\ViaCepAdapter;
+use App\Modules\Core\Contracts\CepProviderInterface;
 use App\Modules\Core\Contracts\DepoimentoRepositoryInterface;
 use App\Modules\Core\Contracts\InstituicaoRepositoryInterface;
 use App\Modules\Core\Contracts\PlanoAssinaturaRepositoryInterface;
@@ -28,6 +30,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use Laravel\Sanctum\Sanctum;
 use App\Modules\Core\Models\PersonalAccessToken;
 
@@ -43,6 +46,14 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->bind(PlanoAssinaturaRepositoryInterface::class, PlanoAssinaturaRepository::class);
         $this->app->bind(DepoimentoRepositoryInterface::class, DepoimentoRepository::class);
         $this->app->bind(SiteModuloRepositoryInterface::class, SiteModuloRepository::class);
+
+        $this->app->bind(CepProviderInterface::class, fn () => match (config('services.cep.driver')) {
+            'viacep' => new ViaCepAdapter(
+                (string) config('services.cep.viacep_url', 'https://viacep.com.br/ws'),
+                (int) config('services.cep.timeout', 5),
+            ),
+            default => throw new InvalidArgumentException('Provedor de CEP desconhecido: '.config('services.cep.driver')),
+        });
 
         $this->app->when(CachedPlanoEntitlementResolver::class)
             ->needs(PlanoEntitlementResolverInterface::class)

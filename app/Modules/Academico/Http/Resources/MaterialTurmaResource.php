@@ -18,6 +18,8 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: "file_path", type: "string", example: "materiais_turmas/1/apostila.pdf"),
         new OA\Property(property: "file_url", type: "string", example: "http://localhost/storage/materiais_turmas/1/apostila.pdf"),
         new OA\Property(property: "file_type", type: "string", example: "application/pdf"),
+        new OA\Property(property: "link", type: "string", format: "uri", nullable: true, example: "https://youtube.com/watch?v=abc"),
+        new OA\Property(property: "tipo", type: "string", enum: ["arquivo", "link"], example: "arquivo"),
         new OA\Property(property: "publico", type: "boolean", example: true),
         new OA\Property(property: "created_at", type: "string", format: "date-time", example: "2026-02-21 10:00:00", nullable: true)
     ]
@@ -39,6 +41,8 @@ class MaterialTurmaResource extends JsonResource
             'file_path' => $this->file_path,
             'file_url' => $this->file_path ? url('storage/' . $this->file_path) : null,
             'file_type' => $this->file_type,
+            'link' => $this->link,
+            'tipo' => $this->link ? 'link' : 'arquivo',
             'publico' => (bool) $this->publico,
             'created_at' => $this->created_at ? $this->created_at->toDateTimeString() : null,
         ];

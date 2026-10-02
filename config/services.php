@@ -39,4 +39,10 @@ return [
         'url' => env('WHATSAPP_API_URL', 'http://localhost:8088'),
     ],
 
+    'cep' => [
+        'driver' => env('CEP_PROVIDER', 'viacep'),
+        'viacep_url' => env('VIACEP_URL', 'https://viacep.com.br/ws'),
+        'timeout' => (int) env('CEP_TIMEOUT', 5),
+    ],
+
 ];

@@ -54,6 +54,13 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::put('/me/senha', [MeController::class, 'updateSenha']);
 
+    Route::middleware('ensure.senha.atualizada')->prefix('me/perfil')->group(function () {
+        Route::get('/', [MeController::class, 'showPerfil']);
+        Route::put('/', [MeController::class, 'updatePerfil']);
+        Route::post('foto', [MeController::class, 'updateFoto']);
+        Route::delete('foto', [MeController::class, 'destroyFoto']);
+    });
+
     Route::get('/instituicoes/mine', [InstituicaoController::class, 'mine']);
     Route::post('/instituicoes/switch', [InstituicaoController::class, 'switch']);
 
@@ -73,6 +80,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/estados', [LocalidadeController::class, 'estados']);
     Route::get('/estados/{estadoId}/cidades', [LocalidadeController::class, 'cidades']);
+    Route::get('/cep/{cep}', [LocalidadeController::class, 'cep'])
+        ->where('cep', '[0-9]{5}-?[0-9]{3}')
+        ->middleware('throttle:30,1');
 
     Route::post('platform/stop-impersonation', [PlatformImpersonationController::class, 'stop']);
 

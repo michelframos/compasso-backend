@@ -5,12 +5,13 @@ namespace App\Modules\Academico\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Academico\Models\MaterialTurma;
 use App\Modules\Academico\Models\Turma;
-use Illuminate\Http\Request;
 use App\Modules\Academico\Http\Requests\MaterialTurma\StoreMaterialTurmaRequest;
 use App\Modules\Academico\Http\Requests\MaterialTurma\UpdateMaterialTurmaRequest;
 use App\Modules\Academico\Http\Resources\MaterialTurmaResource;
+use App\Modules\Academico\UseCases\MaterialTurma\AtualizarMaterialTurmaUseCase;
+use App\Modules\Academico\UseCases\MaterialTurma\CriarMaterialTurmaUseCase;
+use App\Modules\Academico\UseCases\MaterialTurma\ExcluirMaterialTurmaUseCase;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Storage;
 use OpenApi\Attributes as OA;
 
 class MaterialTurmaController extends Controller
@@ -63,24 +64,17 @@ class MaterialTurmaController extends Controller
                 description: "Material criado",
                 content: new OA\JsonContent(ref: "#/components/schemas/MaterialTurmaResource")
             ),
+            new OA\Response(response: 403, description: "Professor não leciona na turma"),
             new OA\Response(response: 422, description: "Erro de validação")
         ]
     )]
-    public function store(StoreMaterialTurmaRequest $request)
+    public function store(StoreMaterialTurmaRequest $request, CriarMaterialTurmaUseCase $criar)
     {
         $data = $request->validated();
 
         Gate::authorize('gerenciarMateriais', Turma::findOrFail($data['id_turma']));
 
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            $data['file_type'] = $file->getClientMimeType();
-            $path = $file->store('materiais_turmas/' . $data['id_turma'], 'public');
-            $data['file_path'] = $path;
-        }
-
-        $material = MaterialTurma::create($data);
-        return new MaterialTurmaResource($material);
+        return new MaterialTurmaResource($criar->execute($data, $request->file('file')));
     }
 
     #[OA\Get(
@@ -128,29 +122,18 @@ class MaterialTurmaController extends Controller
                 description: "Material atualizado",
                 content: new OA\JsonContent(ref: "#/components/schemas/MaterialTurmaResource")
             ),
+            new OA\Response(response: 403, description: "Professor não leciona na turma"),
             new OA\Response(response: 404, description: "Material não encontrado"),
             new OA\Response(response: 422, description: "Erro de validação")
         ]
     )]
-    public function update(UpdateMaterialTurmaRequest $request, $id)
+    public function update(UpdateMaterialTurmaRequest $request, $id, AtualizarMaterialTurmaUseCase $atualizar)
     {
         $material = MaterialTurma::visivelPara($request->user())->findOrFail($id);
-        $data = $request->validated();
 
-        if ($request->hasFile('file')) {
-            // Remove o antigo
-            if ($material->file_path && Storage::disk('public')->exists($material->file_path)) {
-                Storage::disk('public')->delete($material->file_path);
-            }
+        Gate::authorize('gerenciarMateriais', $material->turma);
 
-            $file = $request->file('file');
-            $data['file_type'] = $file->getClientMimeType();
-            $path = $file->store('materiais_turmas/' . $material->id_turma, 'public');
-            $data['file_path'] = $path;
-        }
-
-        $material->update($data);
-        return new MaterialTurmaResource($material);
+        return new MaterialTurmaResource($atualizar->execute($material, $request->validated(), $request->file('file')));
     }
 
     #[OA\Delete(
@@ -163,20 +146,18 @@ class MaterialTurmaController extends Controller
         ],
         responses: [
             new OA\Response(response: 204, description: "Material excluído"),
+            new OA\Response(response: 403, description: "Professor não leciona na turma"),
             new OA\Response(response: 404, description: "Material não encontrado")
         ]
     )]
-    public function destroy($id)
+    public function destroy($id, ExcluirMaterialTurmaUseCase $excluir)
     {
         $material = MaterialTurma::findOrFail($id);
 
         Gate::authorize('delete', $material);
 
-        if ($material->file_path && Storage::disk('public')->exists($material->file_path)) {
-            Storage::disk('public')->delete($material->file_path);
-        }
+        $excluir->execute($material);
 
-        $material->delete();
         return response()->json(null, 204);
     }
 
@@ -203,7 +184,10 @@ class MaterialTurmaController extends Controller
     public function getByTurma($turmaId)
     {
         Turma::findOrFail($turmaId);
-        $materiais = MaterialTurma::where('id_turma', $turmaId)->visivelPara(request()->user())->get();
+        $materiais = MaterialTurma::where('id_turma', $turmaId)
+            ->visivelPara(request()->user())
+            ->orderByDesc('id')
+            ->get();
         return MaterialTurmaResource::collection($materiais);
     }
 }

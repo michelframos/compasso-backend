@@ -3,12 +3,19 @@
 namespace App\Modules\Academico\Providers;
 
 use App\Modules\Academico\Models\AulaTurma;
+use App\Modules\Academico\Models\AvaliacaoAluno;
 use App\Modules\Academico\Models\MaterialTurma;
 use App\Modules\Academico\Models\Matricula;
+use App\Modules\Academico\Models\ObservacaoAluno;
+use App\Modules\Academico\Models\SugestaoProgressao;
 use App\Modules\Academico\Models\Turma;
 use App\Modules\Academico\Policies\AulaTurmaPolicy;
+use App\Modules\Academico\Policies\AvaliacaoAlunoPolicy;
+use App\Modules\Academico\Policies\FichaAlunoPolicy;
 use App\Modules\Academico\Policies\MaterialTurmaPolicy;
 use App\Modules\Academico\Policies\MatriculaPolicy;
+use App\Modules\Academico\Policies\ObservacaoAlunoPolicy;
+use App\Modules\Academico\Policies\SugestaoProgressaoPolicy;
 use App\Modules\Academico\Policies\TurmaPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +35,10 @@ class AcademicoServiceProvider extends ServiceProvider
         Gate::policy(Turma::class, TurmaPolicy::class);
         Gate::policy(AulaTurma::class, AulaTurmaPolicy::class);
         Gate::policy(MaterialTurma::class, MaterialTurmaPolicy::class);
+        Gate::policy(ObservacaoAluno::class, ObservacaoAlunoPolicy::class);
+        Gate::policy(AvaliacaoAluno::class, AvaliacaoAlunoPolicy::class);
+        Gate::policy(SugestaoProgressao::class, SugestaoProgressaoPolicy::class);
+        Gate::define('verFichaAluno', [FichaAlunoPolicy::class, 'view']);
 
         Route::middleware('api')
             ->prefix('api')

@@ -38,7 +38,7 @@ class AlunoDaTurmaResource extends JsonResource
             'id_aluno' => $this->id_aluno,
             'id_turma' => $this->id_turma,
             'status' => $this->status,
-            'data' => $this->data,
+            'data' => $this->data?->format('Y-m-d'),
             'aluno' => $this->aluno ? [
                 'id' => $this->aluno->id,
                 'usuario' => [

@@ -38,6 +38,12 @@ class AulaTurmaPolicy
         );
     }
 
+    /** Somente administradores alteram aulas já concluídas (liberados pelo Gate::before). */
+    public function alterarConcluida(User $user, AulaTurma $aula): Response
+    {
+        return Response::deny('Aulas dadas e finalizadas só podem ser alteradas por administradores.');
+    }
+
     private function somenteProfessorDaAula(User $user, AulaTurma $aula, string $mensagem): Response
     {
         if ($user->role !== 'professor') {

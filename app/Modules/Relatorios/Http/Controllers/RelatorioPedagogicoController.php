@@ -4,17 +4,17 @@ namespace App\Modules\Relatorios\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\AulaPresenca;
-use App\Models\AulaTurma;
-use App\Models\Aluno;
 use App\Models\Turma;
-use App\Models\Matricula;
 use App\Modules\Core\Support\InstituicaoContext;
+use App\Modules\Relatorios\Services\DiarioClasseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class RelatorioPedagogicoController extends Controller
 {
+    public function __construct(private readonly DiarioClasseService $diarioClasse) {}
+
     /**
      * Retorna os dados para o Relatório de Frequência e Absenteísmo
      */
@@ -115,72 +115,12 @@ class RelatorioPedagogicoController extends Controller
             return response()->json(['message' => 'ID da turma é obrigatório'], 400);
         }
 
-        $turma = Turma::with([
-            'professor.usuario',
-            'curso',
-            'nivel',
-            'horarios',
-            'matriculas' => function($query) {
-                $query->whereNull('deleted_at')
-                      ->with('aluno.usuario');
-            }
-        ])->find($idTurma);
+        $turma = Turma::find($idTurma);
 
         if (!$turma) {
             return response()->json(['message' => 'Turma não encontrada'], 404);
         }
 
-        // Busca todas as aulas da turma no período
-        $aulas = AulaTurma::where('id_turma', $idTurma)
-            ->whereBetween('data', [$dataInicio, $dataFim])
-            ->where('status', 'concluida')
-            ->with('presencas')
-            ->orderBy('data', 'asc')
-            ->orderBy('hora_inicio', 'asc')
-            ->get();
-
-        // Formata os dados para o frontend
-        $data = [
-            'id' => $turma->id,
-            'descricao' => $turma->descricao,
-            'curso' => $turma->curso ? $turma->curso->nome : 'N/A',
-            'nivel' => $turma->nivel ? $turma->nivel->nome : 'N/A',
-            'professor' => $turma->professor && $turma->professor->usuario ? $turma->professor->usuario->nome : 'Não atribuído',
-            'status' => $turma->status,
-            'horarios' => $turma->horarios->map(function($h) {
-                return [
-                    'dia_semana' => $h->dia_semana,
-                    'hora_inicio' => $h->hora_inicio,
-                    'hora_termino' => $h->hora_termino,
-                ];
-            }),
-            'aulas' => $aulas->map(function($aula) {
-                $statusMap = [
-                    'presente' => 'presente',
-                    'ausente' => 'falta',
-                    'justificado' => 'falta_justificada',
-                ];
-
-                return [
-                    'id' => $aula->id,
-                    'data' => $aula->data,
-                    'hora_inicio' => $aula->hora_inicio,
-                    'conteudo_dado' => $aula->conteudo_dado,
-                    'presencas' => $aula->presencas->mapWithKeys(function($p) use ($statusMap) {
-                        return [$p->id_aluno => $statusMap[$p->status] ?? $p->status];
-                    }),
-                ];
-            }),
-            'alunos' => $turma->matriculas->map(function($m) {
-                return [
-                    'id_aluno' => $m->id_aluno,
-                    'nome' => $m->aluno && $m->aluno->usuario ? $m->aluno->usuario->nome : 'N/A',
-                    'data_matricula' => $m->data,
-                    'status' => $m->status,
-                ];
-            })->sortBy('nome')->values(),
-        ];
-
-        return response()->json($data);
+        return response()->json($this->diarioClasse->montar($turma, $dataInicio, $dataFim));
     }
 }

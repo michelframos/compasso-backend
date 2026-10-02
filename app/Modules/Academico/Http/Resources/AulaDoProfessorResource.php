@@ -28,6 +28,11 @@ use OpenApi\Attributes as OA;
                 new OA\Property(property: 'nome', type: 'string', example: 'Carla Dias'),
             ]),
         ]),
+        new OA\Property(property: 'presencas', type: 'array', description: 'Presenças já lançadas (apenas no detalhe da aula)', items: new OA\Items(properties: [
+            new OA\Property(property: 'id_aluno', type: 'integer', example: 5),
+            new OA\Property(property: 'status', type: 'string', enum: ['presente', 'ausente', 'justificado'], example: 'presente'),
+            new OA\Property(property: 'observacao', type: 'string', nullable: true),
+        ])),
     ]
 )]
 class AulaDoProfessorResource extends JsonResource
@@ -50,6 +55,11 @@ class AulaDoProfessorResource extends JsonResource
                 'id' => $this->aluno_especifico->id,
                 'usuario' => ['nome' => $this->aluno_especifico->usuario?->nome],
             ] : null),
+            'presencas' => $this->whenLoaded('presencas', fn () => $this->presencas->map(fn ($presenca) => [
+                'id_aluno' => $presenca->id_aluno,
+                'status' => $presenca->status,
+                'observacao' => $presenca->observacao,
+            ])->values()),
         ];
     }
 }

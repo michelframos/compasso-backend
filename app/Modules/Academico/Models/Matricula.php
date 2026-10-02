@@ -33,6 +33,9 @@ class Matricula extends Model
 {
     use HasFactory, PertenceAInstituicao, SoftDeletes;
 
+    /** Status de matrículas que não vinculam mais o aluno à turma. */
+    public const STATUS_ENCERRADOS = ['cancelada', 'transferida'];
+
     protected $table = 'matriculas';
     protected $fillable = [
         'id_instituicao',
@@ -57,12 +60,58 @@ class Matricula extends Model
     public function scopeVisivelPara(Builder $query, User $user): Builder
     {
         return match ($user->role) {
-            'professor' => $query->whereHas('turma', fn (Builder $q) => $q->where('id_professor', $user->professor?->id ?? 0)),
+            'professor' => $this->doProfessor($query, $user->professor?->id ?? 0),
             'aluno' => $query->where('id_aluno', $user->aluno?->id ?? 0),
             'responsavel' => $query->whereHas('aluno.responsaveis', fn (Builder $q) => $q
                 ->where('responsaveis_alunos.id_responsavel', $user->responsavel?->id ?? 0)),
             default => $query,
         };
+    }
+
+    /** Matrículas em turmas do professor ou matrículas por curso (aulas individuais) atribuídas a ele. */
+    private function doProfessor(Builder $query, int $professorId): Builder
+    {
+        return $query->where(fn (Builder $q) => $q
+            ->whereHas('turma', fn (Builder $t) => $t->where('id_professor', $professorId))
+            ->orWhere(fn (Builder $c) => $c->where('tipo', 'curso')->where('id_professor', $professorId)));
+    }
+
+    /** Professor responsável pela matrícula: o da turma ou, na matrícula por curso, o atribuído diretamente. */
+    public function idProfessorResponsavel(): ?int
+    {
+        return $this->tipo === 'curso' ? $this->id_professor : $this->turma?->id_professor;
+    }
+
+    public function idCursoAtual(): ?int
+    {
+        return $this->tipo === 'curso' ? $this->id_curso : $this->turma?->id_curso;
+    }
+
+    public function idNivelAtual(): ?int
+    {
+        return $this->tipo === 'curso' ? $this->id_nivel : $this->turma?->id_nivel;
+    }
+
+    public function estaVigente(): bool
+    {
+        return ! in_array($this->status, self::STATUS_ENCERRADOS, true);
+    }
+
+    /** Usado pelo histórico gerado no evento `updated` ao trocar de turma. */
+    public ?string $motivoTransferencia = null;
+
+    public function transferirParaTurma(int $idTurma, string $motivo): void
+    {
+        $this->motivoTransferencia = $motivo;
+        $this->update(['id_turma' => $idTurma]);
+        $this->motivoTransferencia = null;
+    }
+
+    public function scopeVigentes(Builder $query): Builder
+    {
+        return $query->where(fn (Builder $q) => $q
+            ->whereNull('status')
+            ->orWhereNotIn('status', self::STATUS_ENCERRADOS));
     }
 
     public function curso()
@@ -129,7 +178,7 @@ class Matricula extends Model
                     'id_turma_origem' => $matricula->getOriginal('id_turma'),
                     'id_turma_destino' => $matricula->id_turma,
                     'data_transferencia' => now(),
-                    'motivo' => request('motivo_transferencia') ?? 'Transferência de turma'
+                    'motivo' => $matricula->motivoTransferencia ?? request('motivo_transferencia') ?? 'Transferência de turma'
                 ]);
             }
         });

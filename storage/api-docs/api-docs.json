@@ -345,6 +345,277 @@
                 ]
             }
         },
+        "/api/professor/me/avaliacoes": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Avaliações de uma turma do professor ou de um aluno seu (inclui as registradas por colegas)",
+                "operationId": "8c539d1199df345fb8f017bafcc3be3d",
+                "parameters": [
+                    {
+                        "name": "id_turma",
+                        "in": "query",
+                        "description": "Obrigatório sem id_aluno",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "id_aluno",
+                        "in": "query",
+                        "description": "Obrigatório sem id_turma",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Avaliações, da mais recente para a mais antiga",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AvaliacaoAlunoResource"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Turma de outro professor ou aluno sem matrícula vigente com o professor"
+                    },
+                    "422": {
+                        "description": "Filtro ausente ou inválido"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Registrar avaliação de um aluno do professor",
+                "operationId": "eb8260b961d843034fc5c4c3af0c84e4",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreAvaliacaoAlunoRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Avaliação registrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AvaliacaoAlunoResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Aluno sem matrícula vigente com o professor (ou na turma informada)"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/avaliacoes/{avaliacaoAluno}": {
+            "put": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Editar avaliação (somente o autor)",
+                "operationId": "6c205870ddea6ae316825f660da12181",
+                "parameters": [
+                    {
+                        "name": "avaliacaoAluno",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateAvaliacaoAlunoRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Avaliação atualizada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AvaliacaoAlunoResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Avaliação registrada por outro professor"
+                    },
+                    "404": {
+                        "description": "Avaliação não encontrada"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Excluir avaliação (somente o autor)",
+                "operationId": "1ac97bc9879f748f2bdc3b1ae6502471",
+                "parameters": [
+                    {
+                        "name": "avaliacaoAluno",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Avaliação excluída"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Avaliação registrada por outro professor"
+                    },
+                    "404": {
+                        "description": "Avaliação não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/aulas-turmas/{aulaTurma}/concluir": {
+            "post": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Concluir aula: registra a chamada, o conteúdo ministrado e congela os valores da aula",
+                "operationId": "0f09b69b9b224b081ce94f099f5fe0f3",
+                "parameters": [
+                    {
+                        "name": "aulaTurma",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ConcluirAulaRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Aula concluída",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Aula concluída com sucesso."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/AulaDoProfessorResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Professor não leciona a aula, aula já concluída (somente admin altera) ou turma encerrada"
+                    },
+                    "422": {
+                        "description": "Aula cancelada, futura ou com alunos que não pertencem a ela"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/cursos": {
             "get": {
                 "tags": [
@@ -607,6 +878,9 @@
                             }
                         }
                     },
+                    "403": {
+                        "description": "Professor não leciona na turma"
+                    },
                     "422": {
                         "description": "Erro de validação"
                     }
@@ -702,6 +976,9 @@
                             }
                         }
                     },
+                    "403": {
+                        "description": "Professor não leciona na turma"
+                    },
                     "404": {
                         "description": "Material não encontrado"
                     },
@@ -734,6 +1011,9 @@
                 "responses": {
                     "204": {
                         "description": "Material excluído"
+                    },
+                    "403": {
+                        "description": "Professor não leciona na turma"
                     },
                     "404": {
                         "description": "Material não encontrado"
@@ -1376,6 +1656,322 @@
                 ]
             }
         },
+        "/api/professor/me/observacoes": {
+            "post": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Registrar observação pedagógica sobre um aluno das turmas do professor",
+                "operationId": "50f523dac17c923335a911a1ff4b57c1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreObservacaoAlunoRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Observação registrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ObservacaoAlunoResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Aluno não matriculado nas turmas do professor (ou na turma informada)"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/observacoes/{observacaoAluno}": {
+            "put": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Editar observação pedagógica (somente o autor)",
+                "operationId": "192fdcace29f312f2f98d0abdf31b937",
+                "parameters": [
+                    {
+                        "name": "observacaoAluno",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateObservacaoAlunoRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Observação atualizada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/ObservacaoAlunoResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Observação registrada por outro professor"
+                    },
+                    "404": {
+                        "description": "Observação não encontrada"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Excluir observação pedagógica (somente o autor)",
+                "operationId": "d1cdf2db710bf3bd9c4ec45a0c03598c",
+                "parameters": [
+                    {
+                        "name": "observacaoAluno",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Observação excluída"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Observação registrada por outro professor"
+                    },
+                    "404": {
+                        "description": "Observação não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/alunos": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Alunos do professor: matrícula vigente em suas turmas ou por curso (aulas individuais) atribuída a ele",
+                "operationId": "8e57b394817b091110825dd695e8a8fb",
+                "parameters": [
+                    {
+                        "name": "tipo",
+                        "in": "query",
+                        "description": "turma ou curso; vazio traz ambos",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "turma",
+                                "curso"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Busca por nome ou e-mail",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Alunos do professor",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AlunoDoProfessorResource"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Usuário não é professor desta instituição ou precisa trocar a senha"
+                    },
+                    "422": {
+                        "description": "Filtro inválido"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/alunos/{aluno}": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Ficha do aluno: dados básicos, matrículas nas turmas do professor, frequência e observações pedagógicas",
+                "operationId": "b497a809dbfbbd621640ab1a68268e41",
+                "parameters": [
+                    {
+                        "name": "aluno",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ficha do aluno",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/FichaAlunoResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Aluno sem matrícula vigente nas turmas do professor"
+                    },
+                    "404": {
+                        "description": "Aluno não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/aulas/{aulaTurma}": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Aula do professor para a chamada: alunos ativos da turma e presenças já lançadas",
+                "operationId": "45b20804ff57b9115cb79d4506901ced",
+                "parameters": [
+                    {
+                        "name": "aulaTurma",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Aula",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/AulaDoProfessorResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Aula que o professor não leciona"
+                    },
+                    "404": {
+                        "description": "Aula não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/professor/me": {
             "get": {
                 "tags": [
@@ -1615,6 +2211,277 @@
                     },
                     "404": {
                         "description": "Turma não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/niveis": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Níveis da instituição (para o professor escolher o nível sugerido)",
+                "operationId": "872afc00790efc299b156ade3dd0d702",
+                "responses": {
+                    "200": {
+                        "description": "Níveis ordenados por curso e ordem",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/NivelResource"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Usuário não é professor desta instituição"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/progressoes": {
+            "post": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Sugerir progressão de nível para um aluno do professor",
+                "operationId": "c5c0ccba060ab37325952dc58f5076fd",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreSugestaoProgressaoRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Sugestão registrada (pendente)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/SugestaoProgressaoResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Matrícula de turma ou curso de outro professor"
+                    },
+                    "422": {
+                        "description": "Matrícula não vigente, nível igual ao atual ou de outro curso, ou sugestão pendente já existente"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/professor/me/progressoes/{sugestaoProgressao}": {
+            "delete": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Cancelar sugestão de progressão ainda pendente (somente o autor)",
+                "operationId": "74638db31141af48959251a57d0334af",
+                "parameters": [
+                    {
+                        "name": "sugestaoProgressao",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Sugestão cancelada"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Sugestão feita por outro professor"
+                    },
+                    "404": {
+                        "description": "Sugestão não encontrada"
+                    },
+                    "422": {
+                        "description": "Sugestão já decidida"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/progressoes": {
+            "get": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Sugestões de progressão de nível (fila da secretaria)",
+                "operationId": "f18d3b0524a8e0a3134199fd39f5da1b",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "pendente (padrão), aprovada, rejeitada ou todas",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pendente",
+                                "aprovada",
+                                "rejeitada",
+                                "todas"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Nome do aluno",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sugestões paginadas (15 por página)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/SugestaoProgressaoResource"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Papel sem acesso"
+                    },
+                    "422": {
+                        "description": "Filtro inválido"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/progressoes/{sugestaoProgressao}/decisao": {
+            "post": {
+                "tags": [
+                    "Academico"
+                ],
+                "summary": "Aprovar ou rejeitar sugestão de progressão (aprovar transfere a matrícula ou troca o nível)",
+                "operationId": "cf2c9f7b95c6e5fe236915e92b714a5c",
+                "parameters": [
+                    {
+                        "name": "sugestaoProgressao",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DecidirSugestaoProgressaoRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Sugestão decidida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/SugestaoProgressaoResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Papel sem acesso"
+                    },
+                    "404": {
+                        "description": "Sugestão não encontrada"
+                    },
+                    "422": {
+                        "description": "Sugestão já decidida, turma de destino ausente ou inválida, matrícula não vigente ou motivo da rejeição ausente"
                     }
                 },
                 "security": [
@@ -2620,6 +3487,207 @@
                 "responses": {
                     "200": {
                         "description": "Lista de cidades"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/cep/{cep}": {
+            "get": {
+                "tags": [
+                    "Core"
+                ],
+                "summary": "Buscar endereço pelo CEP",
+                "description": "Consulta o provedor de CEP configurado (padrão: ViaCEP) e devolve o endereço com id_estado/id_cidade resolvidos pelo código IBGE. Resultados ficam em cache por 30 dias.",
+                "operationId": "69f613f24b93666ff4bbdb17700581ad",
+                "parameters": [
+                    {
+                        "name": "cep",
+                        "in": "path",
+                        "description": "8 dígitos, com ou sem hífen",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "01001-000"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Endereço encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/EnderecoCepResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "404": {
+                        "description": "CEP não encontrado ou em formato inválido"
+                    },
+                    "429": {
+                        "description": "Muitas consultas em pouco tempo"
+                    },
+                    "503": {
+                        "description": "Serviço de CEP indisponível"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/me/perfil": {
+            "get": {
+                "tags": [
+                    "Core"
+                ],
+                "summary": "Dados do perfil do usuário autenticado",
+                "operationId": "9aeed4b91588a082509fbafef06996e1",
+                "responses": {
+                    "200": {
+                        "description": "Perfil do usuário",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResource"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Troca de senha obrigatória pendente"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Core"
+                ],
+                "summary": "Atualizar os dados pessoais do usuário autenticado",
+                "description": "Disponível para todos os papéis. E-mail, CPF e papel não são alterados por aqui.",
+                "operationId": "97ea5b15fcea5aea558eb5bd7b444914",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdatePerfilRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Perfil atualizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResource"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Troca de senha obrigatória pendente"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/me/perfil/foto": {
+            "post": {
+                "tags": [
+                    "Core"
+                ],
+                "summary": "Enviar ou substituir a foto de perfil do usuário autenticado",
+                "operationId": "eb51f6c4a7938e0d6934daa1d1e124a6",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AtualizarFotoPerfilRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Foto atualizada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResource"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Core"
+                ],
+                "summary": "Remover a foto de perfil do usuário autenticado",
+                "operationId": "cfbf84a860000a4345c304637f27b198",
+                "responses": {
+                    "200": {
+                        "description": "Foto removida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserResource"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
                     }
                 },
                 "security": [
@@ -6134,10 +7202,208 @@
                     }
                 ]
             }
+        },
+        "/api/professor/me/turmas/{turma}/diario": {
+            "get": {
+                "tags": [
+                    "Relatorios"
+                ],
+                "summary": "Diário de classe de uma turma do professor (aulas concluídas, presenças e conteúdos)",
+                "operationId": "ee3f54553a3dc732293e99c30f9a995c",
+                "parameters": [
+                    {
+                        "name": "turma",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "data_inicio",
+                        "in": "query",
+                        "description": "Padrão: início do mês atual",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "data_fim",
+                        "in": "query",
+                        "description": "Padrão: fim do mês atual",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Diário de classe",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "descricao": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "curso": {
+                                                    "type": "string",
+                                                    "example": "Violão"
+                                                },
+                                                "nivel": {
+                                                    "type": "string",
+                                                    "example": "Básico"
+                                                },
+                                                "professor": {
+                                                    "type": "string",
+                                                    "example": "Ana Lima"
+                                                },
+                                                "data_inicio": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "data_fim": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "horarios": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "aulas": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "data": {
+                                                                "type": "string",
+                                                                "format": "date"
+                                                            },
+                                                            "hora_inicio": {
+                                                                "type": "string"
+                                                            },
+                                                            "conteudo_dado": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            },
+                                                            "presencas": {
+                                                                "description": "Mapa id_aluno => presente|falta|falta_justificada",
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "alunos": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id_aluno": {
+                                                                "type": "integer"
+                                                            },
+                                                            "nome": {
+                                                                "type": "string"
+                                                            },
+                                                            "data_matricula": {
+                                                                "type": "string",
+                                                                "format": "date",
+                                                                "nullable": true
+                                                            },
+                                                            "status": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "403": {
+                        "description": "Turma de outro professor"
+                    },
+                    "404": {
+                        "description": "Turma não encontrada"
+                    },
+                    "422": {
+                        "description": "Período inválido"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "components": {
         "schemas": {
+            "ConcluirAulaRequest": {
+                "title": "Concluir Aula Request",
+                "description": "Chamada e conteúdo ministrado para concluir a aula",
+                "required": [
+                    "presencas"
+                ],
+                "properties": {
+                    "conteudo_dado": {
+                        "type": "string",
+                        "example": "Escala de Dó maior e leitura rítmica",
+                        "nullable": true
+                    },
+                    "presencas": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id_aluno": {
+                                    "type": "integer",
+                                    "example": 1
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "presente",
+                                        "ausente",
+                                        "justificado"
+                                    ],
+                                    "example": "presente"
+                                },
+                                "observacao": {
+                                    "type": "string",
+                                    "example": "Chegou 15 minutos atrasado",
+                                    "nullable": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
             "StoreAulaTurmaRequest": {
                 "title": "Store Aula Turma Request",
                 "description": "Payload para criação de Aula de Turma",
@@ -6336,6 +7602,114 @@
                 },
                 "type": "object"
             },
+            "StoreAvaliacaoAlunoRequest": {
+                "title": "Store Avaliação Aluno Request",
+                "description": "Registro de uma avaliação de um aluno do professor. Informe nota, conceito ou ambos.",
+                "required": [
+                    "id_aluno",
+                    "data",
+                    "tipo"
+                ],
+                "properties": {
+                    "id_aluno": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "id_turma": {
+                        "description": "Turma do professor em que o aluno está matriculado (vazio = aulas individuais)",
+                        "type": "integer",
+                        "example": 2,
+                        "nullable": true
+                    },
+                    "data": {
+                        "description": "Não pode ser futura",
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-09-30"
+                    },
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "pratica",
+                            "teorica",
+                            "apresentacao",
+                            "participacao",
+                            "outra"
+                        ],
+                        "example": "pratica"
+                    },
+                    "nota": {
+                        "type": "number",
+                        "maximum": 10,
+                        "minimum": 0,
+                        "example": 8.5,
+                        "nullable": true
+                    },
+                    "conceito": {
+                        "type": "string",
+                        "enum": [
+                            "excelente",
+                            "bom",
+                            "regular",
+                            "insuficiente"
+                        ],
+                        "example": "bom",
+                        "nullable": true
+                    },
+                    "comentario": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "UpdateAvaliacaoAlunoRequest": {
+                "title": "Update Avaliação Aluno Request",
+                "description": "Edição de uma avaliação (aluno e turma não mudam). A avaliação precisa continuar com nota ou conceito.",
+                "properties": {
+                    "data": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-09-30"
+                    },
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "pratica",
+                            "teorica",
+                            "apresentacao",
+                            "participacao",
+                            "outra"
+                        ],
+                        "example": "teorica"
+                    },
+                    "nota": {
+                        "type": "number",
+                        "maximum": 10,
+                        "minimum": 0,
+                        "example": 9,
+                        "nullable": true
+                    },
+                    "conceito": {
+                        "type": "string",
+                        "enum": [
+                            "excelente",
+                            "bom",
+                            "regular",
+                            "insuficiente"
+                        ],
+                        "example": "excelente",
+                        "nullable": true
+                    },
+                    "comentario": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
             "StoreCursoRequest": {
                 "required": [
                     "nome"
@@ -6371,11 +7745,10 @@
             },
             "StoreMaterialTurmaRequest": {
                 "title": "Store Material Turma Request",
-                "description": "Request para criar um novo material de turma",
+                "description": "Request para criar um novo material de turma. Informe um arquivo ou um link.",
                 "required": [
                     "id_turma",
-                    "titulo",
-                    "file"
+                    "titulo"
                 ],
                 "properties": {
                     "id_turma": {
@@ -6392,9 +7765,16 @@
                         "nullable": true
                     },
                     "file": {
-                        "description": "O arquivo sendo enviado",
+                        "description": "Arquivo (obrigatório quando não houver link). Máx. 10MB",
                         "type": "string",
                         "format": "binary"
+                    },
+                    "link": {
+                        "description": "Link externo (obrigatório quando não houver arquivo)",
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://youtube.com/watch?v=abc",
+                        "nullable": true
                     },
                     "publico": {
                         "description": "Se o material é visível para os alunos",
@@ -6407,7 +7787,7 @@
             },
             "UpdateMaterialTurmaRequest": {
                 "title": "Update Material Turma Request",
-                "description": "Request para atualizar um material de turma existente",
+                "description": "Request para atualizar um material de turma existente. Enviar um arquivo substitui o link (e vice-versa).",
                 "properties": {
                     "titulo": {
                         "type": "string",
@@ -6419,9 +7799,15 @@
                         "nullable": true
                     },
                     "file": {
-                        "description": "O novo arquivo (opcional)",
+                        "description": "O novo arquivo (opcional). Máx. 10MB",
                         "type": "string",
                         "format": "binary"
+                    },
+                    "link": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://youtube.com/watch?v=abc",
+                        "nullable": true
                     },
                     "publico": {
                         "description": "Se o material é visível para os alunos",
@@ -6660,6 +8046,131 @@
                         "type": "string",
                         "example": "O aluno deve conseguir...",
                         "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "StoreObservacaoAlunoRequest": {
+                "title": "Store Observação Aluno Request",
+                "description": "Registro de uma observação pedagógica sobre um aluno das turmas do professor",
+                "required": [
+                    "id_aluno",
+                    "tipo",
+                    "texto"
+                ],
+                "properties": {
+                    "id_aluno": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "id_turma": {
+                        "description": "Turma do professor em que o aluno está matriculado (opcional)",
+                        "type": "integer",
+                        "example": 2,
+                        "nullable": true
+                    },
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "comportamento",
+                            "evolucao",
+                            "alerta",
+                            "geral"
+                        ],
+                        "example": "evolucao"
+                    },
+                    "texto": {
+                        "type": "string",
+                        "maxLength": 5000,
+                        "example": "Evoluiu bem na leitura de partitura."
+                    },
+                    "visivel_responsavel": {
+                        "type": "boolean",
+                        "default": false,
+                        "example": false
+                    }
+                },
+                "type": "object"
+            },
+            "UpdateObservacaoAlunoRequest": {
+                "title": "Update Observação Aluno Request",
+                "description": "Edição de uma observação pedagógica. Aluno e turma não podem ser alterados.",
+                "properties": {
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "comportamento",
+                            "evolucao",
+                            "alerta",
+                            "geral"
+                        ],
+                        "example": "alerta"
+                    },
+                    "texto": {
+                        "type": "string",
+                        "maxLength": 5000,
+                        "example": "Faltou às duas últimas aulas sem aviso."
+                    },
+                    "visivel_responsavel": {
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "type": "object"
+            },
+            "DecidirSugestaoProgressaoRequest": {
+                "title": "Decidir Sugestão Progressão Request",
+                "description": "Aprovação ou rejeição de uma sugestão pendente. Na matrícula em turma, aprovar exige a turma de destino (do nível sugerido e do mesmo curso); na matrícula por curso, o nível da matrícula é trocado.",
+                "required": [
+                    "decisao"
+                ],
+                "properties": {
+                    "decisao": {
+                        "type": "string",
+                        "enum": [
+                            "aprovada",
+                            "rejeitada"
+                        ],
+                        "example": "aprovada"
+                    },
+                    "id_turma_destino": {
+                        "description": "Obrigatório ao aprovar matrícula em turma",
+                        "type": "integer",
+                        "example": 7,
+                        "nullable": true
+                    },
+                    "motivo_decisao": {
+                        "description": "Obrigatório ao rejeitar",
+                        "type": "string",
+                        "maxLength": 2000,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "StoreSugestaoProgressaoRequest": {
+                "title": "Store Sugestão Progressão Request",
+                "description": "Sugestão do professor para mudar o aluno de nível; a secretaria aprova ou rejeita",
+                "required": [
+                    "id_matricula",
+                    "id_nivel_sugerido",
+                    "justificativa"
+                ],
+                "properties": {
+                    "id_matricula": {
+                        "description": "Matrícula vigente em turma ou curso do professor",
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "id_nivel_sugerido": {
+                        "description": "Diferente do nível atual e do mesmo curso (quando o nível é vinculado a um curso)",
+                        "type": "integer",
+                        "example": 4
+                    },
+                    "justificativa": {
+                        "type": "string",
+                        "maxLength": 2000,
+                        "example": "Domina as escalas maiores e lê partitura com fluência."
                     }
                 },
                 "type": "object"
@@ -7020,6 +8531,94 @@
                 },
                 "type": "object"
             },
+            "AlunoDoProfessorResource": {
+                "title": "AlunoDoProfessorResource",
+                "description": "Aluno do professor com as matrículas vigentes que o ligam a ele (turmas e cursos com aulas individuais)",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "nome": {
+                        "type": "string",
+                        "example": "Bruno Souza"
+                    },
+                    "email": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "telefone": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "foto_url": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "matriculas": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "tipo": {
+                                    "type": "string",
+                                    "enum": [
+                                        "turma",
+                                        "curso"
+                                    ],
+                                    "example": "curso"
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "example": "ativa",
+                                    "nullable": true
+                                },
+                                "id_turma": {
+                                    "type": "integer",
+                                    "nullable": true
+                                },
+                                "turma": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "descricao": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object",
+                                    "nullable": true
+                                },
+                                "curso": {
+                                    "description": "Curso da matrícula (tipo curso) ou da turma",
+                                    "properties": {
+                                        "nome": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object",
+                                    "nullable": true
+                                },
+                                "nivel": {
+                                    "description": "Nível da matrícula (tipo curso) ou da turma",
+                                    "properties": {
+                                        "nome": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object",
+                                    "nullable": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
             "AulaDoProfessorResource": {
                 "title": "AulaDoProfessorResource",
                 "description": "Aula vista pelo professor (sem snapshots financeiros), com os alunos ativos da turma para a chamada",
@@ -7094,6 +8693,162 @@
                         },
                         "type": "object",
                         "nullable": true
+                    },
+                    "presencas": {
+                        "description": "Presenças já lançadas (apenas no detalhe da aula)",
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id_aluno": {
+                                    "type": "integer",
+                                    "example": 5
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "presente",
+                                        "ausente",
+                                        "justificado"
+                                    ],
+                                    "example": "presente"
+                                },
+                                "observacao": {
+                                    "type": "string",
+                                    "nullable": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "AvaliacaoAlunoResource": {
+                "title": "AvaliacaoAlunoResource",
+                "description": "Avaliação de um aluno registrada por um professor",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "id_aluno": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "id_turma": {
+                        "description": "Nulo = aulas individuais",
+                        "type": "integer",
+                        "example": 2,
+                        "nullable": true
+                    },
+                    "id_professor": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "data": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2026-09-30"
+                    },
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "pratica",
+                            "teorica",
+                            "apresentacao",
+                            "participacao",
+                            "outra"
+                        ],
+                        "example": "pratica"
+                    },
+                    "nota": {
+                        "type": "number",
+                        "example": 8.5,
+                        "nullable": true
+                    },
+                    "conceito": {
+                        "type": "string",
+                        "enum": [
+                            "excelente",
+                            "bom",
+                            "regular",
+                            "insuficiente"
+                        ],
+                        "example": "bom",
+                        "nullable": true
+                    },
+                    "comentario": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "pode_editar": {
+                        "description": "Se o usuário autenticado pode editar/excluir (autor da avaliação)",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "aluno": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 5
+                            },
+                            "nome": {
+                                "type": "string",
+                                "example": "Bruno Souza"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "professor": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 3
+                            },
+                            "nome": {
+                                "type": "string",
+                                "example": "Ana Lima"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "turma": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 2
+                            },
+                            "descricao": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "curso": {
+                                "properties": {
+                                    "nome": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object",
+                                "nullable": true
+                            },
+                            "nivel": {
+                                "properties": {
+                                    "nome": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object",
+                                "nullable": true
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
                     }
                 },
                 "type": "object"
@@ -7112,6 +8867,287 @@
                         "type": "string",
                         "example": "Curso de violino para iniciantes",
                         "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "FichaAlunoResource": {
+                "title": "FichaAlunoResource",
+                "description": "Ficha do aluno vista pelo professor: dados básicos, matrículas nas turmas do professor, frequência nas suas aulas e observações pedagógicas",
+                "properties": {
+                    "aluno": {
+                        "properties": {
+                            "id": {
+                                "description": "Recebe o array montado pelo FichaAlunoService.",
+                                "type": "integer",
+                                "example": 5
+                            },
+                            "nome": {
+                                "type": "string",
+                                "example": "Bruno Souza"
+                            },
+                            "email": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "telefone": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "whatsapp": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "foto_url": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "data_nascimento": {
+                                "type": "string",
+                                "format": "date",
+                                "example": "2012-04-10",
+                                "nullable": true
+                            },
+                            "idade": {
+                                "type": "integer",
+                                "example": 14,
+                                "nullable": true
+                            },
+                            "responsaveis": {
+                                "type": "array",
+                                "items": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "nome": {
+                                            "type": "string"
+                                        },
+                                        "parentesco": {
+                                            "type": "string",
+                                            "example": "Mãe",
+                                            "nullable": true
+                                        },
+                                        "telefone": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "whatsapp": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "matriculas": {
+                        "description": "Matrículas em turmas do professor e matrículas por curso atribuídas a ele",
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "tipo": {
+                                    "type": "string",
+                                    "enum": [
+                                        "turma",
+                                        "curso"
+                                    ],
+                                    "example": "turma"
+                                },
+                                "id_turma": {
+                                    "type": "integer",
+                                    "nullable": true
+                                },
+                                "id_curso": {
+                                    "description": "Curso atual (da matrícula por curso ou da turma)",
+                                    "type": "integer",
+                                    "nullable": true
+                                },
+                                "id_nivel": {
+                                    "description": "Nível atual (da matrícula por curso ou da turma)",
+                                    "type": "integer",
+                                    "nullable": true
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "example": "ativa",
+                                    "nullable": true
+                                },
+                                "data": {
+                                    "type": "string",
+                                    "format": "date",
+                                    "nullable": true
+                                },
+                                "curso": {
+                                    "description": "Curso da matrícula (tipo curso) ou da turma",
+                                    "properties": {
+                                        "nome": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object",
+                                    "nullable": true
+                                },
+                                "nivel": {
+                                    "description": "Nível da matrícula (tipo curso) ou da turma",
+                                    "properties": {
+                                        "nome": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object",
+                                    "nullable": true
+                                },
+                                "turma": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer"
+                                        },
+                                        "descricao": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "status": {
+                                            "type": "string"
+                                        },
+                                        "curso": {
+                                            "properties": {
+                                                "nome": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object",
+                                            "nullable": true
+                                        },
+                                        "nivel": {
+                                            "properties": {
+                                                "nome": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object",
+                                    "nullable": true
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "frequencia": {
+                        "description": "Presenças lançadas nas aulas do professor (aulas canceladas ignoradas)",
+                        "properties": {
+                            "total": {
+                                "type": "integer",
+                                "example": 12
+                            },
+                            "presentes": {
+                                "type": "integer",
+                                "example": 10
+                            },
+                            "ausentes": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "justificados": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "percentual_presenca": {
+                                "type": "number",
+                                "example": 83.3,
+                                "nullable": true
+                            },
+                            "por_turma": {
+                                "type": "array",
+                                "items": {
+                                    "properties": {
+                                        "id_turma": {
+                                            "description": "Nulo = aulas individuais (sem turma)",
+                                            "type": "integer",
+                                            "nullable": true
+                                        },
+                                        "total": {
+                                            "type": "integer"
+                                        },
+                                        "presentes": {
+                                            "type": "integer"
+                                        },
+                                        "ausentes": {
+                                            "type": "integer"
+                                        },
+                                        "justificados": {
+                                            "type": "integer"
+                                        },
+                                        "percentual_presenca": {
+                                            "type": "number",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            },
+                            "ultimas": {
+                                "description": "Últimas 10 presenças, da mais recente para a mais antiga",
+                                "type": "array",
+                                "items": {
+                                    "properties": {
+                                        "id_aula": {
+                                            "type": "integer"
+                                        },
+                                        "id_turma": {
+                                            "type": "integer",
+                                            "nullable": true
+                                        },
+                                        "data": {
+                                            "type": "string",
+                                            "format": "date"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "presente",
+                                                "ausente",
+                                                "justificado"
+                                            ]
+                                        },
+                                        "observacao": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "observacoes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ObservacaoAlunoResource"
+                        }
+                    },
+                    "avaliacoes": {
+                        "description": "Avaliações do aluno (inclusive de colegas), da mais recente para a mais antiga",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AvaliacaoAlunoResource"
+                        }
+                    },
+                    "progressoes": {
+                        "description": "Sugestões de progressão das matrículas listadas",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SugestaoProgressaoResource"
+                        }
                     }
                 },
                 "type": "object"
@@ -7148,6 +9184,20 @@
                     "file_type": {
                         "type": "string",
                         "example": "application/pdf"
+                    },
+                    "link": {
+                        "type": "string",
+                        "format": "uri",
+                        "example": "https://youtube.com/watch?v=abc",
+                        "nullable": true
+                    },
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "arquivo",
+                            "link"
+                        ],
+                        "example": "arquivo"
                     },
                     "publico": {
                         "type": "boolean",
@@ -7276,6 +9326,109 @@
                 },
                 "type": "object"
             },
+            "ObservacaoAlunoResource": {
+                "title": "ObservacaoAlunoResource",
+                "description": "Observação pedagógica registrada por um professor sobre um aluno",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "id_aluno": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "id_professor": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "id_turma": {
+                        "type": "integer",
+                        "example": 2,
+                        "nullable": true
+                    },
+                    "tipo": {
+                        "type": "string",
+                        "enum": [
+                            "comportamento",
+                            "evolucao",
+                            "alerta",
+                            "geral"
+                        ],
+                        "example": "evolucao"
+                    },
+                    "texto": {
+                        "type": "string",
+                        "example": "Evoluiu bem na leitura de partitura."
+                    },
+                    "visivel_responsavel": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "pode_editar": {
+                        "description": "Se o usuário autenticado pode editar/excluir (autor da observação)",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "professor": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 3
+                            },
+                            "nome": {
+                                "type": "string",
+                                "example": "Ana Lima"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "turma": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 2
+                            },
+                            "descricao": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "curso": {
+                                "properties": {
+                                    "nome": {
+                                        "type": "string",
+                                        "example": "Piano"
+                                    }
+                                },
+                                "type": "object",
+                                "nullable": true
+                            },
+                            "nivel": {
+                                "properties": {
+                                    "nome": {
+                                        "type": "string",
+                                        "example": "Básico"
+                                    }
+                                },
+                                "type": "object",
+                                "nullable": true
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
             "ProfessorAutenticadoResource": {
                 "title": "ProfessorAutenticadoResource",
                 "description": "Dados do professor autenticado na instituição ativa",
@@ -7308,6 +9461,194 @@
                     },
                     "whatsapp": {
                         "type": "string",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "SugestaoProgressaoResource": {
+                "title": "SugestaoProgressaoResource",
+                "description": "Sugestão de progressão de nível feita por um professor",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pendente",
+                            "aprovada",
+                            "rejeitada"
+                        ],
+                        "example": "pendente"
+                    },
+                    "justificativa": {
+                        "type": "string"
+                    },
+                    "motivo_decisao": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "decidido_em": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "pode_cancelar": {
+                        "description": "Autor da sugestão e ainda pendente",
+                        "type": "boolean"
+                    },
+                    "aluno": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "nome": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "matricula": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "tipo": {
+                                "type": "string",
+                                "enum": [
+                                    "turma",
+                                    "curso"
+                                ]
+                            },
+                            "status": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "curso": {
+                                "properties": {
+                                    "nome": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object",
+                                "nullable": true
+                            },
+                            "turma": {
+                                "description": "Turma atual da matrícula",
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "descricao": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object",
+                                "nullable": true
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "nivel_atual": {
+                        "description": "Nível no momento da sugestão",
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "nome": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "nivel_sugerido": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "nome": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "professor": {
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "nome": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "turma_destino": {
+                        "description": "Turma para a qual o aluno foi transferido na aprovação",
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "descricao": {
+                                "type": "string",
+                                "nullable": true
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "decisor": {
+                        "properties": {
+                            "nome": {
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "turmas_destino": {
+                        "description": "Somente na listagem da secretaria, para sugestões pendentes de matrícula em turma",
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "descricao": {
+                                    "type": "string",
+                                    "nullable": true
+                                },
+                                "curso": {
+                                    "type": "string",
+                                    "nullable": true
+                                },
+                                "nivel": {
+                                    "type": "string",
+                                    "nullable": true
+                                },
+                                "professor": {
+                                    "type": "string",
+                                    "nullable": true
+                                },
+                                "alunos_vigentes": {
+                                    "type": "integer"
+                                },
+                                "maximo_alunos": {
+                                    "type": "integer"
+                                }
+                            },
+                            "type": "object"
+                        },
                         "nullable": true
                     }
                 },
@@ -8608,6 +10949,20 @@
                 },
                 "type": "object"
             },
+            "AtualizarFotoPerfilRequest": {
+                "title": "Atualizar Foto de Perfil Request",
+                "required": [
+                    "foto"
+                ],
+                "properties": {
+                    "foto": {
+                        "description": "Imagem JPG, PNG ou WEBP de até 2MB",
+                        "type": "string",
+                        "format": "binary"
+                    }
+                },
+                "type": "object"
+            },
             "StoreUserRequest": {
                 "title": "Store User Request",
                 "description": "Store User request body data",
@@ -8665,6 +11020,71 @@
                 },
                 "type": "object"
             },
+            "UpdatePerfilRequest": {
+                "title": "Update Perfil Request",
+                "description": "Dados pessoais editáveis pelo próprio usuário. E-mail, CPF e papel são mantidos pela secretaria.",
+                "required": [
+                    "nome"
+                ],
+                "properties": {
+                    "nome": {
+                        "type": "string",
+                        "example": "Maria Souza"
+                    },
+                    "telefone": {
+                        "type": "string",
+                        "example": "(11) 3333-4444",
+                        "nullable": true
+                    },
+                    "whatsapp": {
+                        "type": "string",
+                        "example": "(11) 99999-8888",
+                        "nullable": true
+                    },
+                    "data_aniversario": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "1990-05-20",
+                        "nullable": true
+                    },
+                    "cep": {
+                        "type": "string",
+                        "example": "01001-000",
+                        "nullable": true
+                    },
+                    "rua": {
+                        "type": "string",
+                        "example": "Praça da Sé",
+                        "nullable": true
+                    },
+                    "numero": {
+                        "type": "string",
+                        "example": "100",
+                        "nullable": true
+                    },
+                    "complemento": {
+                        "type": "string",
+                        "example": "Apto 12",
+                        "nullable": true
+                    },
+                    "bairro": {
+                        "type": "string",
+                        "example": "Sé",
+                        "nullable": true
+                    },
+                    "id_estado": {
+                        "type": "integer",
+                        "example": 25,
+                        "nullable": true
+                    },
+                    "id_cidade": {
+                        "type": "integer",
+                        "example": 5270,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
             "UpdateUserRequest": {
                 "title": "Update User Request",
                 "description": "Update User request body data",
@@ -8710,6 +11130,57 @@
                     "whatsapp": {
                         "type": "string",
                         "example": "(11) 99999-9999",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "EnderecoCepResource": {
+                "title": "Endereço por CEP",
+                "description": "Endereço encontrado para um CEP, com estado e cidade já resolvidos para os IDs locais",
+                "properties": {
+                    "cep": {
+                        "type": "string",
+                        "example": "01001-000"
+                    },
+                    "logradouro": {
+                        "type": "string",
+                        "example": "Praça da Sé",
+                        "nullable": true
+                    },
+                    "complemento": {
+                        "type": "string",
+                        "example": "lado ímpar",
+                        "nullable": true
+                    },
+                    "bairro": {
+                        "type": "string",
+                        "example": "Sé",
+                        "nullable": true
+                    },
+                    "cidade": {
+                        "type": "string",
+                        "example": "São Paulo",
+                        "nullable": true
+                    },
+                    "uf": {
+                        "type": "string",
+                        "example": "SP",
+                        "nullable": true
+                    },
+                    "codigo_ibge": {
+                        "type": "integer",
+                        "example": 3550308,
+                        "nullable": true
+                    },
+                    "id_estado": {
+                        "type": "integer",
+                        "example": 25,
+                        "nullable": true
+                    },
+                    "id_cidade": {
+                        "type": "integer",
+                        "example": 3830,
                         "nullable": true
                     }
                 },
@@ -8948,6 +11419,12 @@
                         "description": "URL da foto do usuÃ¡rio",
                         "type": "string",
                         "example": "http://example.com/foto.jpg"
+                    },
+                    "foto_url": {
+                        "description": "URL pública da foto de perfil",
+                        "type": "string",
+                        "example": "http://localhost/storage/usuarios/fotos/abc.jpg",
+                        "nullable": true
                     },
                     "whatsapp": {
                         "description": "Whatsapp",

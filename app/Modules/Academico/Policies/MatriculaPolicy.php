@@ -28,8 +28,8 @@ class MatriculaPolicy
     {
         return match ($user->role) {
             'professor' => $this->permitirSe(
-                $this->lecionaPara($user, $matricula->turma?->id_professor),
-                'Acesso restrito: Este aluno não pertence a uma turma que você leciona.'
+                $this->lecionaPara($user, $matricula->idProfessorResponsavel()),
+                'Acesso restrito: Este aluno não pertence a uma turma ou curso que você leciona.'
             ),
             'aluno' => $this->permitirSe(
                 $this->ehOProprioAluno($user, $matricula->id_aluno),

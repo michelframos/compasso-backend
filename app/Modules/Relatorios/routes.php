@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Relatorios\Http\Controllers\DashboardController;
+use App\Modules\Relatorios\Http\Controllers\DiarioClasseProfessorController;
 use App\Modules\Relatorios\Http\Controllers\RelatorioComercialController;
 use App\Modules\Relatorios\Http\Controllers\RelatorioFinanceiroController;
 use App\Modules\Relatorios\Http\Controllers\RelatorioInstrumentoController;
@@ -14,6 +15,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['auth:sanctum', 'ensure.instituicao.membership'])->group(function () {
+    Route::middleware(['ensure.senha.atualizada', 'role:professor', 'ensure.perfil.professor'])
+        ->get('professor/me/turmas/{turma}/diario', [DiarioClasseProfessorController::class, 'show']);
+
     Route::middleware('role:secretaria,admin')->group(function () {
         Route::get('dashboard/resumo', [DashboardController::class, 'resumo']);
         Route::get('dashboard/financeiro', [DashboardController::class, 'financeiro']);
