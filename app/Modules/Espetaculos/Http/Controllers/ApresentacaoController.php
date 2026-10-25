@@ -7,6 +7,8 @@ use App\Modules\Espetaculos\Models\Apresentacao;
 use App\Modules\Espetaculos\Http\Requests\Apresentacao\StoreApresentacaoRequest;
 use App\Modules\Espetaculos\Http\Requests\Apresentacao\UpdateApresentacaoRequest;
 use App\Modules\Espetaculos\Http\Resources\ApresentacaoResource;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use OpenApi\Attributes as OA;
 
 class ApresentacaoController extends Controller
@@ -35,9 +37,13 @@ class ApresentacaoController extends Controller
             )
         ]
     )]
-    public function index()
+    public function index(Request $request)
     {
-        $apresentacoes = Apresentacao::with(['espetaculo', 'turma', 'alunos'])->latest()->paginate(15);
+        $apresentacoes = Apresentacao::query()
+            ->visivelPara($request->user())
+            ->with(['espetaculo', 'turma', 'alunos'])
+            ->latest()
+            ->paginate(15);
         return ApresentacaoResource::collection($apresentacoes);
     }
 
@@ -80,11 +86,14 @@ class ApresentacaoController extends Controller
                 description: "Operação bem-sucedida",
                 content: new OA\JsonContent(ref: "#/components/schemas/ApresentacaoResource")
             ),
+            new OA\Response(response: 403, description: "Apresentação sem turma ou alunos do professor"),
             new OA\Response(response: 404, description: "Apresentação não encontrada")
         ]
     )]
     public function show(Apresentacao $apresentacao)
     {
+        Gate::authorize('view', $apresentacao);
+
         $apresentacao->load(['espetaculo', 'turma', 'alunos']);
         return new ApresentacaoResource($apresentacao);
     }

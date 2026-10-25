@@ -24,14 +24,22 @@ class EnsurePlanoModulo
             ], 422);
         }
 
-        if (! $this->entitlements->permiteModulo($instituicao, $modulo)) {
+        if ($this->entitlements->permiteModulo($instituicao, $modulo)) {
+            return $next($request);
+        }
+
+        if ($this->entitlements->moduloContratado($instituicao, $modulo)) {
             return response()->json([
-                'message' => 'Este módulo não está incluído no plano da escola.',
-                'code' => 'modulo_nao_incluido',
+                'message' => 'Este módulo está desativado nas configurações da escola.',
+                'code' => 'modulo_desativado',
                 'modulo' => $modulo,
             ], 403);
         }
 
-        return $next($request);
+        return response()->json([
+            'message' => 'Este módulo não está incluído no plano da escola.',
+            'code' => 'modulo_nao_incluido',
+            'modulo' => $modulo,
+        ], 403);
     }
 }

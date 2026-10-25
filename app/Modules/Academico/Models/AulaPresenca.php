@@ -27,6 +27,9 @@ class AulaPresenca extends Model
 {
     use HasFactory, PertenceAInstituicao, SoftDeletes;
     protected $table = 'aulas_presencas';
+
+    public const STATUS = ['presente', 'ausente', 'justificado'];
+
     protected $fillable = ['id_instituicao', 'id_aula_turma', 'id_aluno', 'status', 'observacao'];
     public $timestamps = false;
 

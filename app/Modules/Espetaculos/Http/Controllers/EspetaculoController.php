@@ -7,6 +7,8 @@ use App\Modules\Espetaculos\Models\Espetaculo;
 use App\Modules\Espetaculos\Http\Requests\Espetaculo\StoreEspetaculoRequest;
 use App\Modules\Espetaculos\Http\Requests\Espetaculo\UpdateEspetaculoRequest;
 use App\Modules\Espetaculos\Http\Resources\EspetaculoResource;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use OpenApi\Attributes as OA;
 
 class EspetaculoController extends Controller
@@ -35,9 +37,9 @@ class EspetaculoController extends Controller
             )
         ]
     )]
-    public function index()
+    public function index(Request $request)
     {
-        $espetaculos = Espetaculo::latest()->paginate(15);
+        $espetaculos = Espetaculo::query()->visivelPara($request->user())->latest()->paginate(15);
         return EspetaculoResource::collection($espetaculos);
     }
 
@@ -79,11 +81,14 @@ class EspetaculoController extends Controller
                 description: "Operação bem-sucedida",
                 content: new OA\JsonContent(ref: "#/components/schemas/EspetaculoResource")
             ),
+            new OA\Response(response: 403, description: "Professor sem turmas ou alunos no espetáculo"),
             new OA\Response(response: 404, description: "Espetáculo não encontrado")
         ]
     )]
     public function show(Espetaculo $espetaculo)
     {
+        Gate::authorize('view', $espetaculo);
+
         return new EspetaculoResource($espetaculo);
     }
 

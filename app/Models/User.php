@@ -7,4 +7,9 @@ namespace App\Models;
  */
 class User extends \App\Modules\Core\Models\User
 {
+    /** Tokens e relações polimórficas precisam apontar para a mesma classe, senão `tokens()` não os encontra. */
+    public function getMorphClass()
+    {
+        return parent::class;
+    }
 }

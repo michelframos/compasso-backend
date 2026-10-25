@@ -92,7 +92,10 @@ class MatriculaController extends Controller
     {
         Gate::authorize('viewAnyDaTurma', [Matricula::class, (int) $id_turma]);
 
-        $matriculas = Matricula::where('id_turma', $id_turma)->with(['aluno', 'turma'])->get();
+        $matriculas = Matricula::where('id_turma', $id_turma)
+            ->visivelPara(request()->user())
+            ->with(['aluno', 'turma'])
+            ->get();
         return MatriculaResource::collection($matriculas);
     }
 

@@ -3,6 +3,8 @@
 namespace App\Modules\Core\Providers;
 
 use App\Models\User as LegacyUserAlias;
+use App\Modules\Core\Adapters\Cep\ViaCepAdapter;
+use App\Modules\Core\Contracts\CepProviderInterface;
 use App\Modules\Core\Contracts\DepoimentoRepositoryInterface;
 use App\Modules\Core\Contracts\InstituicaoRepositoryInterface;
 use App\Modules\Core\Contracts\PlanoAssinaturaRepositoryInterface;
@@ -22,8 +24,13 @@ use App\Modules\Core\Repositories\SiteModuloRepository;
 use App\Modules\Core\Repositories\UserRepository;
 use App\Modules\Core\Support\CachedPlanoEntitlementResolver;
 use App\Modules\Core\Support\PlanoEntitlementResolver;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
+use InvalidArgumentException;
 use Laravel\Sanctum\Sanctum;
 use App\Modules\Core\Models\PersonalAccessToken;
 
@@ -39,6 +46,14 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->bind(PlanoAssinaturaRepositoryInterface::class, PlanoAssinaturaRepository::class);
         $this->app->bind(DepoimentoRepositoryInterface::class, DepoimentoRepository::class);
         $this->app->bind(SiteModuloRepositoryInterface::class, SiteModuloRepository::class);
+
+        $this->app->bind(CepProviderInterface::class, fn () => match (config('services.cep.driver')) {
+            'viacep' => new ViaCepAdapter(
+                (string) config('services.cep.viacep_url', 'https://viacep.com.br/ws'),
+                (int) config('services.cep.timeout', 5),
+            ),
+            default => throw new InvalidArgumentException('Provedor de CEP desconhecido: '.config('services.cep.driver')),
+        });
 
         $this->app->when(CachedPlanoEntitlementResolver::class)
             ->needs(PlanoEntitlementResolverInterface::class)
@@ -57,6 +72,9 @@ class CoreServiceProvider extends ServiceProvider
         Instituicao::observe(InstituicaoEntitlementObserver::class);
         ConfiguracaoEmpresa::observe(InstituicaoEntitlementObserver::class);
         PlanoAssinatura::observe(PlanoAssinaturaEntitlementObserver::class);
+
+        RateLimiter::for('login', fn (Request $request) => Limit::perMinute(5)
+            ->by(Str::lower((string) $request->input('email')).'|'.$request->ip()));
 
         Route::middleware('api')
             ->prefix('api')

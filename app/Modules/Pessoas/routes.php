@@ -20,6 +20,8 @@ Route::middleware(['auth:sanctum', 'ensure.instituicao.membership'])->group(func
         Route::delete('/alunos/{aluno}/contratos-avulsos/{alunoContrato}', [AlunoController::class, 'destroyContratoAvulso']);
 
         Route::apiResource('professores', ProfessorController::class)->parameters(['professores' => 'professor']);
+        Route::post('professores/{professor}/enviar-acesso', [ProfessorController::class, 'enviarAcesso'])
+            ->middleware('throttle:5,1');
         Route::apiResource('responsaveis', ResponsavelController::class)->parameters(['responsaveis' => 'responsavel']);
 
         Route::post('/alunos/{aluno}/responsaveis', [ResponsavelAlunoController::class, 'store']);

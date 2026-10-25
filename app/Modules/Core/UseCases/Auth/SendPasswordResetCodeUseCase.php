@@ -22,13 +22,18 @@ class SendPasswordResetCodeUseCase
             throw new HttpException(404, 'Usuário não encontrado');
         }
 
-        $token = sprintf('%06d', mt_rand(1, 999999));
+        $this->enviarPara($user);
+    }
+
+    public function enviarPara(User $user, bool $conviteDeAcesso = false): void
+    {
+        $token = sprintf('%06d', random_int(1, 999999));
 
         DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => $email],
+            ['email' => $user->email],
             ['token' => Hash::make($token), 'created_at' => now()]
         );
 
-        $user->notify(new ResetPasswordNotification($token));
+        $user->notify(new ResetPasswordNotification($token, $conviteDeAcesso));
     }
 }

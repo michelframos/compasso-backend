@@ -10,6 +10,8 @@ use App\Modules\Espetaculos\Http\Requests\ApresentacaoAluno\UpdateApresentacaoAl
 use App\Modules\Espetaculos\Http\Requests\ApresentacaoAluno\GerarCobrancasLoteRequest;
 use App\Modules\Espetaculos\Http\Resources\ApresentacaoAlunoResource;
 use App\Modules\Core\Contracts\CriarCobrancasFigurinoPort;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use OpenApi\Attributes as OA;
 
 class ApresentacaoAlunoController extends Controller
@@ -42,9 +44,13 @@ class ApresentacaoAlunoController extends Controller
             )
         ]
     )]
-    public function index()
+    public function index(Request $request)
     {
-        $apresentacoesAlunos = ApresentacaoAluno::with(['apresentacao', 'aluno'])->latest()->paginate(15);
+        $apresentacoesAlunos = ApresentacaoAluno::query()
+            ->visivelPara($request->user())
+            ->with(['apresentacao', 'aluno'])
+            ->latest()
+            ->paginate(15);
         return ApresentacaoAlunoResource::collection($apresentacoesAlunos);
     }
 
@@ -87,11 +93,14 @@ class ApresentacaoAlunoController extends Controller
                 description: "Operação bem-sucedida",
                 content: new OA\JsonContent(ref: "#/components/schemas/ApresentacaoAlunoResource")
             ),
+            new OA\Response(response: 403, description: "Participação em apresentação que não envolve o professor"),
             new OA\Response(response: 404, description: "Associação não encontrada")
         ]
     )]
     public function show(ApresentacaoAluno $apresentacaoAluno)
     {
+        Gate::authorize('view', $apresentacaoAluno);
+
         $apresentacaoAluno->load(['apresentacao', 'aluno']);
         return new ApresentacaoAlunoResource($apresentacaoAluno);
     }

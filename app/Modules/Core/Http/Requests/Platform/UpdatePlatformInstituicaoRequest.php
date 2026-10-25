@@ -17,8 +17,20 @@ class UpdatePlatformInstituicaoRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $ajustes = [];
+
         if ($this->has('cnpj')) {
-            $this->merge(['cnpj' => Cnpj::normalize($this->input('cnpj'))]);
+            $ajustes['cnpj'] = Cnpj::normalize($this->input('cnpj'));
+        }
+
+        foreach (['id_estado', 'id_cidade', 'id_plano_assinatura'] as $campo) {
+            if ($this->exists($campo) && in_array($this->input($campo), [0, '0', ''], true)) {
+                $ajustes[$campo] = null;
+            }
+        }
+
+        if ($ajustes !== []) {
+            $this->merge($ajustes);
         }
     }
 
@@ -27,7 +39,9 @@ class UpdatePlatformInstituicaoRequest extends FormRequest
      */
     public function rules(): array
     {
-        $instituicaoId = $this->route('instituicao');
+        // O singular automático de "instituicoes" vira "instituico" e a regra unique
+        // deixava de ignorar a própria escola. O resource força o parâmetro "instituicao".
+        $instituicaoId = $this->route('instituicao') ?? $this->route('instituico');
 
         return [
             'slug' => [

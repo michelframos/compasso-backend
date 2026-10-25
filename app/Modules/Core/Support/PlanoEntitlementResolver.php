@@ -16,12 +16,20 @@ class PlanoEntitlementResolver implements PlanoEntitlementResolverInterface
     }
 
     /**
-     * @return array<string, array{label: string, descricao: string}>
+     * @return array<string, array{label: string, descricao: string, desativavel?: bool}>
      */
     public function catalog(): array
     {
-        /** @var array<string, array{label: string, descricao: string}> */
+        /** @var array<string, array{label: string, descricao: string, desativavel?: bool}> */
         return config('platform.modulos_app', []);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function modulosDesativaveis(): array
+    {
+        return array_keys(array_filter($this->catalog(), fn (array $meta) => (bool) ($meta['desativavel'] ?? false)));
     }
 
     public function labelFor(string $key): ?string
@@ -32,13 +40,27 @@ class PlanoEntitlementResolver implements PlanoEntitlementResolverInterface
     }
 
     /**
-     * @return array{modulos: list<string>, limite_alunos: int|null, em_trial: bool}
+     * @return array{modulos: list<string>, modulos_contratados: list<string>, limite_alunos: int|null, em_trial: bool}
      */
     public function resolve(Instituicao $instituicao): array
     {
+        $direitos = $this->resolveContratados($instituicao);
+        $desligados = array_intersect($this->normalizeModulos($instituicao->modulos_desativados), $this->modulosDesativaveis());
+
+        return [
+            'modulos' => array_values(array_diff($direitos['modulos_contratados'], $desligados)),
+            ...$direitos,
+        ];
+    }
+
+    /**
+     * @return array{modulos_contratados: list<string>, limite_alunos: int|null, em_trial: bool}
+     */
+    private function resolveContratados(Instituicao $instituicao): array
+    {
         if ($this->isTrialUnlocked($instituicao)) {
             return [
-                'modulos' => $this->catalogKeys(),
+                'modulos_contratados' => $this->catalogKeys(),
                 'limite_alunos' => null,
                 'em_trial' => true,
             ];
@@ -54,14 +76,14 @@ class PlanoEntitlementResolver implements PlanoEntitlementResolverInterface
 
         if ($statusAtivo && $plano !== null) {
             return [
-                'modulos' => $this->normalizeModulos($plano->modulos),
+                'modulos_contratados' => $this->normalizeModulos($plano->modulos),
                 'limite_alunos' => $plano->limite_alunos,
                 'em_trial' => false,
             ];
         }
 
         return [
-            'modulos' => [],
+            'modulos_contratados' => [],
             'limite_alunos' => $plano?->limite_alunos,
             'em_trial' => false,
         ];
@@ -91,6 +113,14 @@ class PlanoEntitlementResolver implements PlanoEntitlementResolverInterface
         return $this->resolve($instituicao)['modulos'];
     }
 
+    /**
+     * @return list<string>
+     */
+    public function modulosContratados(Instituicao $instituicao): array
+    {
+        return $this->resolve($instituicao)['modulos_contratados'];
+    }
+
     public function limiteAlunos(Instituicao $instituicao): ?int
     {
         return $this->resolve($instituicao)['limite_alunos'];
@@ -99,6 +129,11 @@ class PlanoEntitlementResolver implements PlanoEntitlementResolverInterface
     public function permiteModulo(Instituicao $instituicao, string $modulo): bool
     {
         return in_array($modulo, $this->modulos($instituicao), true);
+    }
+
+    public function moduloContratado(Instituicao $instituicao, string $modulo): bool
+    {
+        return in_array($modulo, $this->modulosContratados($instituicao), true);
     }
 
     /**

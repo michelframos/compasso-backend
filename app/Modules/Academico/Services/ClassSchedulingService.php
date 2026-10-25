@@ -4,8 +4,10 @@ namespace App\Modules\Academico\Services;
 
 use App\Modules\Academico\Models\Turma;
 use App\Modules\Academico\Models\AulaTurma;
+use App\Modules\Academico\Models\DisponibilidadeProfessor;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Illuminate\Support\Collection;
 
 class ClassSchedulingService
 {
@@ -104,6 +106,42 @@ class ClassSchedulingService
         if (isset($ultimoDia) && $turma->data_fim !== $ultimoDia) {
             $turma->update(['data_fim' => $ultimoDia]);
         }
+    }
+
+    /** Aulas não canceladas do professor que se sobrepõem ao horário (encostar no limite não conta). */
+    public function conflitosDoProfessor(int $idProfessor, string $data, string $inicio, string $termino, array $ignorarAulas = []): Collection
+    {
+        return AulaTurma::query()
+            ->where('id_professor', $idProfessor)
+            ->where('status', '!=', 'cancelada')
+            ->whereDate('data', $data)
+            ->where('hora_inicio', '<', $this->hora($termino))
+            ->where('hora_termino', '>', $this->hora($inicio))
+            ->when($ignorarAulas !== [], fn ($q) => $q->whereNotIn('id', $ignorarAulas))
+            ->with(['turma.curso', 'turma.nivel', 'aluno_especifico.usuario'])
+            ->orderBy('hora_inicio')
+            ->get();
+    }
+
+    /** Null quando o professor não cadastrou disponibilidade (não há o que avisar). */
+    public function dentroDaDisponibilidade(int $idProfessor, string $data, string $inicio, string $termino): ?bool
+    {
+        $janelas = DisponibilidadeProfessor::query()->where('id_professor', $idProfessor)->get();
+
+        if ($janelas->isEmpty()) {
+            return null;
+        }
+
+        $dia = DisponibilidadeProfessor::diaDa(Carbon::parse($data));
+
+        return $janelas->contains(fn (DisponibilidadeProfessor $janela) => $janela->dia_semana === $dia
+            && $this->hora($janela->hora_inicio) <= $this->hora($inicio)
+            && $this->hora($janela->hora_termino) >= $this->hora($termino));
+    }
+
+    private function hora(string $valor): string
+    {
+        return substr($valor, 0, 5).':00';
     }
 
     private function createClass(Turma $turma, Carbon $date, $horario)

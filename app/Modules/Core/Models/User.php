@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use OpenApi\Attributes as OA;
 
@@ -23,6 +24,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'email', type: 'string', format: 'email', description: 'Email do usuário', example: 'joao@email.com'),
         new OA\Property(property: 'cpf', type: 'string', description: 'CPF do usuário', example: '123.456.789-00'),
         new OA\Property(property: 'role', type: 'string', description: 'Função do usuário no sistema', example: 'admin'),
+        new OA\Property(property: 'deve_trocar_senha', type: 'boolean', description: 'Exige troca de senha no próximo acesso', example: false),
         new OA\Property(property: 'telefone', type: 'string', description: 'Telefone', example: '(11) 99999-9999'),
         new OA\Property(property: 'whatsapp', type: 'string', description: 'Whatsapp', example: '(11) 99999-9999'),
         new OA\Property(property: 'created_at', type: 'string', format: 'date-time', readOnly: true),
@@ -44,6 +46,7 @@ class User extends Authenticatable
         'data_aniversario',
         'email',
         'senha',
+        'deve_trocar_senha',
         'observacoes',
         'rua',
         'numero',
@@ -97,6 +100,15 @@ class User extends Authenticatable
         return $this->senha;
     }
 
+    public function fotoUrl(): ?string
+    {
+        if (! $this->foto) {
+            return null;
+        }
+
+        return Str::startsWith($this->foto, ['http://', 'https://']) ? $this->foto : url('storage/' . $this->foto);
+    }
+
     public function isSuperAdmin(): bool
     {
         return (bool) $this->is_super_admin;
@@ -108,6 +120,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'senha' => 'hashed',
             'is_super_admin' => 'boolean',
+            'deve_trocar_senha' => 'boolean',
         ];
     }
 }

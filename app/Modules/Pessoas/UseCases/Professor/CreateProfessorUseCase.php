@@ -23,6 +23,7 @@ class CreateProfessorUseCase
                 'telefone' => $data['telefone'] ?? null,
                 'whatsapp' => $data['whatsapp'] ?? null,
                 'password' => $data['password'],
+                'deve_trocar_senha' => true,
             ]);
 
             return Professor::create([

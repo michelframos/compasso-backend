@@ -4,6 +4,7 @@ namespace App\Modules\Core\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(
@@ -16,7 +17,9 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: "email", type: "string", format: "email", description: "Email do usuÃ¡rio", example: "joao@email.com"),
         new OA\Property(property: "role", type: "string", description: "FunÃ§Ã£o do usuÃ¡rio", example: "admin"),
         new OA\Property(property: "is_super_admin", type: "boolean", description: "Super-admin da plataforma", example: false),
+        new OA\Property(property: "deve_trocar_senha", type: "boolean", description: "Exige troca de senha antes de acessar a área do usuário", example: false),
         new OA\Property(property: "foto", type: "string", description: "URL da foto do usuÃ¡rio", example: "http://example.com/foto.jpg"),
+        new OA\Property(property: "foto_url", type: "string", nullable: true, description: "URL pública da foto de perfil", example: "http://localhost/storage/usuarios/fotos/abc.jpg"),
         new OA\Property(property: "whatsapp", type: "string", description: "Whatsapp", example: "(11) 99999-9999"),
         new OA\Property(property: "data_aniversario", type: "string", format: "date", description: "Data de nascimento/aniversÃ¡rio", example: "2010-01-01"),
         new OA\Property(property: "created_at", type: "string", format: "date-time", description: "Data de criaÃ§Ã£o"),
@@ -39,7 +42,9 @@ class UserResource extends JsonResource
             'cpf' => $this->cpf,
             'role' => $this->role,
             'is_super_admin' => (bool) $this->is_super_admin,
+            'deve_trocar_senha' => (bool) $this->deve_trocar_senha,
             'foto' => $this->foto,
+            'foto_url' => $this->fotoUrl(),
             'telefone' => $this->telefone,
             'whatsapp' => $this->whatsapp,
             'data_aniversario' => $this->data_aniversario,
@@ -54,5 +59,14 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+    }
+
+    private function fotoUrl(): ?string
+    {
+        if (! $this->foto) {
+            return null;
+        }
+
+        return Str::startsWith($this->foto, ['http://', 'https://']) ? $this->foto : url('storage/' . $this->foto);
     }
 }

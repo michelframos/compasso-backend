@@ -223,6 +223,30 @@ class PlatformInstituicaoTest extends TestCase
         ]);
     }
 
+    public function test_atualizacao_mantem_slug_e_cnpj_da_propria_escola_sem_endereco(): void
+    {
+        Sanctum::actingAs($this->criarSuperAdmin());
+
+        $cnpj = $this->cnpjValido('escola-ja-cadastrada');
+        $instituicao = Instituicao::create([
+            'slug' => 'escola-ja-cadastrada',
+            'nome_fantasia' => 'Escola Já Cadastrada',
+            'cnpj' => $cnpj,
+            'status' => Instituicao::STATUS_ATIVO,
+        ]);
+
+        $this->putJson("/api/platform/instituicoes/{$instituicao->id}", [
+            'slug' => 'escola-ja-cadastrada',
+            'nome_fantasia' => 'Escola Já Cadastrada Editada',
+            'cnpj' => $cnpj,
+            'id_estado' => 0,
+            'id_cidade' => 0,
+        ])->assertOk()
+            ->assertJsonPath('data.nome_fantasia', 'Escola Já Cadastrada Editada')
+            ->assertJsonPath('data.id_estado', null)
+            ->assertJsonPath('data.id_cidade', null);
+    }
+
     public function test_super_admin_exclui_instituicao_soft_delete(): void
     {
         Sanctum::actingAs($this->criarSuperAdmin());

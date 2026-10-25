@@ -16,8 +16,11 @@ class NotificacaoDisparada extends Model
         'configuracao_notificacao_id',
         'referencia_type',
         'referencia_id',
+        'canal',
         'numero_whatsapp',
+        'email',
         'status',
+        'erro',
         'tentativas',
         'disparado_em',
     ];

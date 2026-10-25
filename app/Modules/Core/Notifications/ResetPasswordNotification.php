@@ -10,12 +10,10 @@ class ResetPasswordNotification extends Notification
 {
     use Queueable;
 
-    public $token;
-
-    public function __construct($token)
-    {
-        $this->token = $token;
-    }
+    public function __construct(
+        public string $token,
+        public bool $conviteDeAcesso = false,
+    ) {}
 
     public function via(object $notifiable): array
     {
@@ -24,13 +22,25 @@ class ResetPasswordNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
-                    ->subject('RecuperaÃ§Ã£o de Senha - Camerata')
-                    ->greeting('OlÃ¡!')
-                    ->line('VocÃª estÃ¡ recebendo este e-mail porque recebemos uma solicitaÃ§Ã£o de redefiniÃ§Ã£o de senha para a sua conta.')
-                    ->line('Seu cÃ³digo de seguranÃ§a Ã©:')
-                    ->line((string) $this->token)
-                    ->line('Este cÃ³digo expira em 60 minutos.')
-                    ->line('Se vocÃª nÃ£o solicitou uma redefiniÃ§Ã£o de senha, nenhuma aÃ§Ã£o adicional Ã© necessÃ¡ria.');
+        $link = rtrim((string) config('app.frontend_url'), '/')
+            .'/redefinir-senha?'.http_build_query(['email' => $notifiable->email]);
+
+        $mensagem = (new MailMessage)->greeting('Olá!');
+
+        if ($this->conviteDeAcesso) {
+            $mensagem->subject('Seu acesso ao Compasso')
+                ->line('A secretaria da sua escola liberou o seu acesso ao Compasso.')
+                ->line('Use o código abaixo para definir a sua senha:');
+        } else {
+            $mensagem->subject('Recuperação de Senha - Compasso')
+                ->line('Você está recebendo este e-mail porque recebemos uma solicitação de redefinição de senha para a sua conta.')
+                ->line('Seu código de segurança é:');
+        }
+
+        return $mensagem
+            ->line($this->token)
+            ->action('Definir senha', $link)
+            ->line('Este código expira em 60 minutos.')
+            ->line('Se você não reconhece esta solicitação, nenhuma ação adicional é necessária.');
     }
 }

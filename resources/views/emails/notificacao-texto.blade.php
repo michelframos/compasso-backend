@@ -1,0 +1,5 @@
+{!! $escola !!}
+
+{!! $assunto !!}
+
+{!! $mensagem !!}

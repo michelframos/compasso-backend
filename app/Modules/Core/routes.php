@@ -13,6 +13,10 @@ use App\Modules\Core\Http\Controllers\PlatformPlanoAssinaturaController;
 use App\Modules\Core\Http\Controllers\PlatformSiteModuloController;
 use App\Modules\Core\Http\Controllers\PlatformSolicitacaoAssinaturaController;
 use App\Modules\Core\Http\Controllers\LocalidadeController;
+use App\Modules\Core\Http\Controllers\MeController;
+use App\Modules\Core\Http\Controllers\ModuloInstituicaoController;
+use App\Modules\Core\Http\Controllers\ComunicacaoProfessorController;
+use App\Modules\Core\Http\Controllers\PermissoesProfessorController;
 use App\Modules\Core\Http\Controllers\PasswordResetController;
 use App\Modules\Core\Http\Controllers\PublicController;
 use App\Modules\Core\Http\Controllers\RegistroEscolaController;
@@ -40,14 +44,24 @@ Route::post('/registrar-escola', [RegistroEscolaController::class, 'store'])
     ->middleware('throttle:5,1');
 Route::post('/ativacao/reenviar', [RegistroEscolaController::class, 'reenviarCodigo'])
     ->middleware('throttle:5,1');
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/platform/login', [AuthController::class, 'platformLogin']);
-Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail']);
-Route::post('/reset-password', [PasswordResetController::class, 'reset']);
+Route::middleware('throttle:login')->group(function () {
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/platform/login', [AuthController::class, 'platformLogin']);
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail']);
+    Route::post('/reset-password', [PasswordResetController::class, 'reset']);
+});
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', function (Request $request) {
         return new UserResource($request->user());
+    });
+    Route::put('/me/senha', [MeController::class, 'updateSenha']);
+
+    Route::middleware('ensure.senha.atualizada')->prefix('me/perfil')->group(function () {
+        Route::get('/', [MeController::class, 'showPerfil']);
+        Route::put('/', [MeController::class, 'updatePerfil']);
+        Route::post('foto', [MeController::class, 'updateFoto']);
+        Route::delete('foto', [MeController::class, 'destroyFoto']);
     });
 
     Route::get('/instituicoes/mine', [InstituicaoController::class, 'mine']);
@@ -65,10 +79,28 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('solicitacao', [AssinaturaController::class, 'solicitacaoAtual']);
             Route::post('solicitar', [AssinaturaController::class, 'solicitar']);
         });
+
+        Route::middleware('role:admin')->prefix('instituicao/modulos')->group(function () {
+            Route::get('/', [ModuloInstituicaoController::class, 'index']);
+            Route::put('{modulo}', [ModuloInstituicaoController::class, 'update']);
+        });
+
+        Route::middleware('role:admin')->prefix('instituicao/comunicacao-professor')->group(function () {
+            Route::get('/', [ComunicacaoProfessorController::class, 'show']);
+            Route::put('/', [ComunicacaoProfessorController::class, 'update']);
+        });
+
+        Route::middleware('role:admin')->prefix('instituicao/permissoes-professor')->group(function () {
+            Route::get('/', [PermissoesProfessorController::class, 'show']);
+            Route::put('/', [PermissoesProfessorController::class, 'update']);
+        });
     });
 
     Route::get('/estados', [LocalidadeController::class, 'estados']);
     Route::get('/estados/{estadoId}/cidades', [LocalidadeController::class, 'cidades']);
+    Route::get('/cep/{cep}', [LocalidadeController::class, 'cep'])
+        ->where('cep', '[0-9]{5}-?[0-9]{3}')
+        ->middleware('throttle:30,1');
 
     Route::post('platform/stop-impersonation', [PlatformImpersonationController::class, 'stop']);
 
@@ -78,7 +110,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('configuracoes', [PlatformConfiguracoesController::class, 'update']);
         Route::get('instituicoes/{instituicao}/usuarios', [PlatformInstituicaoController::class, 'usuarios']);
         Route::post('instituicoes/{instituicao}/impersonate', [PlatformInstituicaoController::class, 'impersonate']);
-        Route::apiResource('instituicoes', PlatformInstituicaoController::class);
+        Route::apiResource('instituicoes', PlatformInstituicaoController::class)
+            ->parameters(['instituicoes' => 'instituicao']);
         Route::apiResource('planos', PlatformPlanoAssinaturaController::class);
         Route::post('depoimentos/{depoimento}/aprovar', [PlatformDepoimentoController::class, 'aprovar']);
         Route::post('depoimentos/{depoimento}/ocultar', [PlatformDepoimentoController::class, 'ocultar']);
