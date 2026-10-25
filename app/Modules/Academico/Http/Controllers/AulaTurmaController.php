@@ -4,6 +4,8 @@ namespace App\Modules\Academico\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Academico\Models\AulaTurma;
+use App\Modules\Academico\Models\Matricula;
+use App\Modules\Academico\Models\Turma;
 use App\Modules\Academico\Http\Requests\Aula\StoreAulaTurmaRequest;
 use App\Modules\Academico\Http\Requests\Aula\UpdateAulaTurmaRequest;
 use App\Modules\Academico\Http\Resources\AulaTurmaResource;
@@ -13,6 +15,7 @@ use App\Modules\Academico\UseCases\Aula\CreateAulaTurmaUseCase;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -114,7 +117,7 @@ class AulaTurmaController extends Controller
     )]
     public function store(StoreAulaTurmaRequest $request)
     {
-        $data = $request->validated();
+        $data = $this->restringirAoProfessor($request->validated());
 
         Gate::authorize('create', [AulaTurma::class, (int) $data['id_professor']]);
         $this->checkBusinessRules(null, $data['id_turma'] ?? null);
@@ -171,14 +174,16 @@ class AulaTurmaController extends Controller
     )]
     public function update(UpdateAulaTurmaRequest $request, AulaTurma $aulaTurma)
     {
-        $this->checkBusinessRules($aulaTurma);
+        $data = $this->restringirAoProfessor($request->validated());
+
+        $this->checkBusinessRules($aulaTurma, array_key_exists('id_turma', $data) ? $data['id_turma'] : null);
         Gate::authorize('update', $aulaTurma);
 
-        if ($request->validated('status') === 'cancelada' && $aulaTurma->status !== 'cancelada') {
+        if (($data['status'] ?? null) === 'cancelada' && $aulaTurma->status !== 'cancelada') {
             Gate::authorize('delete', $aulaTurma);
         }
 
-        $aulaTurma->update($this->snapshots->aplicarSeConcluida($request->validated(), $aulaTurma));
+        $aulaTurma->update($this->snapshots->aplicarSeConcluida($data, $aulaTurma));
         return new AulaTurmaResource($aulaTurma);
     }
 
@@ -208,6 +213,61 @@ class AulaTurmaController extends Controller
         return response()->noContent();
     }
 
+    /**
+     * Na área do professor o agendamento fica no professor logado,
+     * e um curso avulso precisa ser de uma turma ou matrícula individual dele.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function restringirAoProfessor(array $data): array
+    {
+        $user = request()->user();
+
+        if ($user?->role !== 'professor') {
+            return $data;
+        }
+
+        $professorId = $user->professor?->id;
+
+        if (! $professorId) {
+            throw ValidationException::withMessages([
+                'id_professor' => 'Professor não encontrado.',
+            ]);
+        }
+
+        $data['id_professor'] = $professorId;
+
+        $semTurma = empty($data['id_turma']);
+
+        if ($semTurma && ! empty($data['id_curso'])) {
+            $lecionaCurso = Turma::query()->visivelPara($user)->where('id_curso', $data['id_curso'])->exists()
+                || Matricula::query()->visivelPara($user)->where('tipo', 'curso')->where('id_curso', $data['id_curso'])->exists();
+
+            if (! $lecionaCurso) {
+                throw ValidationException::withMessages([
+                    'id_curso' => 'Escolha um curso atribuído a você.',
+                ]);
+            }
+        }
+
+        if (! empty($data['id_aluno_especifico'])) {
+            $alunoAtribuido = Matricula::query()
+                ->visivelPara($user)
+                ->vigentes()
+                ->where('id_aluno', $data['id_aluno_especifico'])
+                ->exists();
+
+            if (! $alunoAtribuido) {
+                throw ValidationException::withMessages([
+                    'id_aluno_especifico' => 'Escolha um aluno das suas turmas ou cursos.',
+                ]);
+            }
+        }
+
+        return $data;
+    }
+
     private function checkBusinessRules(?AulaTurma $aulaTurma, ?int $turmaId = null)
     {
         $idTurma = $turmaId ?? ($aulaTurma ? $aulaTurma->id_turma : null);
@@ -218,7 +278,8 @@ class AulaTurmaController extends Controller
 
         $turma = null;
         if ($idTurma) {
-            $turma = $aulaTurma ? $aulaTurma->turma : \App\Models\Turma::find($idTurma);
+            $mesmaTurma = $aulaTurma && (int) $aulaTurma->id_turma === (int) $idTurma;
+            $turma = $mesmaTurma ? $aulaTurma->turma : Turma::query()->find($idTurma);
 
             if ($turma && ($turma->status === TurmaStatus::CONCLUIDA || $turma->status === TurmaStatus::CANCELADA)) {
                 abort(Response::HTTP_FORBIDDEN, 'Não é possível operar em aulas de turmas concluídas ou canceladas.');

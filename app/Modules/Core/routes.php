@@ -110,7 +110,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('configuracoes', [PlatformConfiguracoesController::class, 'update']);
         Route::get('instituicoes/{instituicao}/usuarios', [PlatformInstituicaoController::class, 'usuarios']);
         Route::post('instituicoes/{instituicao}/impersonate', [PlatformInstituicaoController::class, 'impersonate']);
-        Route::apiResource('instituicoes', PlatformInstituicaoController::class);
+        Route::apiResource('instituicoes', PlatformInstituicaoController::class)
+            ->parameters(['instituicoes' => 'instituicao']);
         Route::apiResource('planos', PlatformPlanoAssinaturaController::class);
         Route::post('depoimentos/{depoimento}/aprovar', [PlatformDepoimentoController::class, 'aprovar']);
         Route::post('depoimentos/{depoimento}/ocultar', [PlatformDepoimentoController::class, 'ocultar']);

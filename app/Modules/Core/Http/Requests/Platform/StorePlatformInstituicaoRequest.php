@@ -41,8 +41,20 @@ class StorePlatformInstituicaoRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $ajustes = [];
+
         if ($this->has('cnpj')) {
-            $this->merge(['cnpj' => Cnpj::normalize($this->input('cnpj'))]);
+            $ajustes['cnpj'] = Cnpj::normalize($this->input('cnpj'));
+        }
+
+        foreach (['id_estado', 'id_cidade', 'id_plano_assinatura'] as $campo) {
+            if ($this->exists($campo) && in_array($this->input($campo), [0, '0', ''], true)) {
+                $ajustes[$campo] = null;
+            }
+        }
+
+        if ($ajustes !== []) {
+            $this->merge($ajustes);
         }
     }
 

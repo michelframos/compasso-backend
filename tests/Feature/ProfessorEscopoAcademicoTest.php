@@ -164,6 +164,77 @@ class ProfessorEscopoAcademicoTest extends TestCase
             ->assertJsonPath('data.0.id_aluno', $this->usuarioAluno->aluno()->withoutGlobalScopes()->value('id'));
     }
 
+    public function test_professor_agenda_para_si_e_rejeita_curso_alheio(): void
+    {
+        $professorId = (int) Professor::withoutGlobalScopes()
+            ->where('id_usuario', $this->usuarioProfessor->id)
+            ->value('id');
+        $alunoId = (int) Aluno::withoutGlobalScopes()
+            ->where('id_usuario', $this->usuarioAluno->id)
+            ->value('id');
+
+        $this->comoUsuario($this->usuarioProfessor, $this->instituicao)
+            ->postJson('/api/aulas-turmas', [
+                'id_turma' => $this->turma->id,
+                'id_professor' => $this->outraTurma->id_professor,
+                'data' => now()->addDay()->toDateString(),
+                'hora_inicio' => '14:00',
+                'hora_termino' => '15:00',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('id_professor', $professorId);
+
+        $this->postJson('/api/aulas-turmas', [
+            'id_turma' => $this->outraTurma->id,
+            'id_professor' => $professorId,
+            'data' => now()->addDay()->toDateString(),
+            'hora_inicio' => '16:00',
+            'hora_termino' => '17:00',
+        ])->assertForbidden();
+
+        $cursoAlheioId = $this->naInstituicao(
+            $this->instituicao,
+            fn () => Curso::create(['nome' => 'Bateria', 'descricao' => 'Percussão'])->id,
+        );
+
+        $this->postJson('/api/aulas-turmas', [
+            'id_curso' => $cursoAlheioId,
+            'id_aluno_especifico' => $alunoId,
+            'id_professor' => $professorId,
+            'data' => now()->addDays(2)->toDateString(),
+            'hora_inicio' => '14:00',
+            'hora_termino' => '15:00',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['id_curso']);
+
+        $usuarioSemVinculo = $this->criarUsuarioNaInstituicao($this->instituicao, 'aluno');
+        $alunoSemVinculoId = (int) $this->naInstituicao(
+            $this->instituicao,
+            fn () => Aluno::create(['id_usuario' => $usuarioSemVinculo->id])->id,
+        );
+
+        $this->postJson('/api/aulas-turmas', [
+            'id_curso' => $this->turma->id_curso,
+            'id_aluno_especifico' => $alunoSemVinculoId,
+            'id_professor' => $professorId,
+            'data' => now()->addDays(3)->toDateString(),
+            'hora_inicio' => '14:00',
+            'hora_termino' => '15:00',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['id_aluno_especifico']);
+
+        $this->postJson('/api/aulas-turmas', [
+            'id_curso' => $this->turma->id_curso,
+            'id_aluno_especifico' => $alunoId,
+            'id_professor' => $professorId,
+            'data' => now()->addDays(4)->toDateString(),
+            'hora_inicio' => '14:00',
+            'hora_termino' => '15:00',
+        ])->assertCreated()
+            ->assertJsonPath('id_aluno_especifico', $alunoId)
+            ->assertJsonPath('id_professor', $professorId);
+    }
+
     public function test_professor_nao_lista_matriculas_de_turma_alheia(): void
     {
         $this->comoUsuario($this->usuarioProfessor, $this->instituicao)
