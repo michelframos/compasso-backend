@@ -13,6 +13,7 @@ use App\Modules\Academico\Models\Nivel;
 use App\Modules\Academico\Models\Turma;
 use App\Modules\Academico\Services\AulaSnapshotService;
 use App\Modules\Core\Models\Instituicao;
+use App\Modules\Core\Models\PlanoAssinatura;
 use App\Modules\Financeiro\Models\CategoriaConta;
 use App\Modules\Financeiro\Models\Conta;
 use App\Modules\Financeiro\Models\ContaPagamento;
@@ -43,6 +44,8 @@ class AreaProfessorGanhosTest extends TestCase
 
     private User $usuarioProfessor;
 
+    private User $usuarioOtto;
+
     private User $admin;
 
     private User $secretaria;
@@ -54,6 +57,8 @@ class AreaProfessorGanhosTest extends TestCase
     private Turma $turmaA;
 
     private Turma $turmaB;
+
+    private Turma $turmaOtto;
 
     private Curso $curso;
 
@@ -73,11 +78,11 @@ class AreaProfessorGanhosTest extends TestCase
         $this->usuarioProfessor = $this->criarUsuarioNaInstituicao($this->instituicao, 'professor', ['nome' => 'Paula Prof']);
         $this->admin = $this->criarUsuarioNaInstituicao($this->instituicao, 'admin');
         $this->secretaria = $this->criarUsuarioNaInstituicao($this->instituicao, 'secretaria');
-        $usuarioOtto = $this->criarUsuarioNaInstituicao($this->instituicao, 'professor', ['nome' => 'Otto Prof']);
+        $this->usuarioOtto = $this->criarUsuarioNaInstituicao($this->instituicao, 'professor', ['nome' => 'Otto Prof']);
         $usuarios = collect(['Ana Lima', 'Bruno Melo', 'Carla Dias'])
             ->map(fn (string $nome) => $this->criarUsuarioNaInstituicao($this->instituicao, 'aluno', ['nome' => $nome]));
 
-        $this->naInstituicao($this->instituicao, function () use ($usuarioOtto, $usuarios): void {
+        $this->naInstituicao($this->instituicao, function () use ($usuarios): void {
             $this->curso = Curso::create(['nome' => 'Violão', 'descricao' => 'Cordas']);
             $this->nivel = Nivel::create(['nome' => 'Básico']);
 
@@ -87,11 +92,11 @@ class AreaProfessorGanhosTest extends TestCase
                 'valor_hora_aula' => 40,
                 'comissao' => 10,
             ]);
-            $this->outroProfessor = Professor::create(['id_usuario' => $usuarioOtto->id, 'valor_hora_aula' => 30, 'comissao' => 15]);
+            $this->outroProfessor = Professor::create(['id_usuario' => $this->usuarioOtto->id, 'valor_hora_aula' => 30, 'comissao' => 15]);
 
             $this->turmaA = $this->criarTurma($this->professor, 'Turma A', ['valor_hora_aula_especifico' => 60, 'percentual_comissao_especifico' => 20]);
             $this->turmaB = $this->criarTurma($this->professor, 'Turma B');
-            $turmaOtto = $this->criarTurma($this->outroProfessor, 'Turma Otto');
+            $this->turmaOtto = $this->criarTurma($this->outroProfessor, 'Turma Otto');
 
             $this->ana = Aluno::create(['id_usuario' => $usuarios[0]->id]);
             $bruno = Aluno::create(['id_usuario' => $usuarios[1]->id]);
@@ -119,7 +124,7 @@ class AreaProfessorGanhosTest extends TestCase
 
             $this->conta($bruno, 200, ['id_matricula' => $this->matricular($bruno, $this->turmaA)->id]);
 
-            $contaCarla = $this->conta($carla, 300, ['id_matricula' => $this->matricular($carla, $turmaOtto)->id]);
+            $contaCarla = $this->conta($carla, 300, ['id_matricula' => $this->matricular($carla, $this->turmaOtto)->id]);
             $this->pagar($contaCarla, 300, '2026-09-05');
 
             $individualAna = Matricula::create([
@@ -248,6 +253,31 @@ class AreaProfessorGanhosTest extends TestCase
         $this->assertNull($comissoes['individuais']['turma']);
     }
 
+    public function test_substituto_recebe_a_hora_aula_da_turma_e_a_comissao_da_propria(): void
+    {
+        $resposta = $this->comoUsuario($this->usuarioOtto, $this->instituicao)
+            ->getJson(self::ROTA.'?mes=2026-09')
+            ->assertOk()
+            ->assertJsonPath('data.professor.nome', 'Otto Prof')
+            ->assertJsonPath('data.resumo.salario_fixo', 0)
+            ->assertJsonPath('data.resumo.total_aulas', 1)
+            ->assertJsonPath('data.resumo.total_horas', 1)
+            ->assertJsonPath('data.resumo.valor_hora_aula', 60)
+            ->assertJsonPath('data.resumo.valor_comissao', 45)
+            ->assertJsonPath('data.resumo.valor_total', 105);
+
+        $aula = $resposta->json('data.aulas.0');
+        $this->assertSame('2026-09-25', $aula['data']);
+        $this->assertEquals([1, 60, 60], [$aula['horas'], $aula['valor_hora'], $aula['valor']]);
+        $this->assertSame($this->turmaA->id, $aula['turma']['id']);
+
+        $this->assertEquals(
+            ['base' => 300, 'percentual' => 15, 'valor' => 45, 'pagamentos' => 1, 'alunos' => 1],
+            collect($resposta->json('data.comissoes.0'))->only(['base', 'percentual', 'valor', 'pagamentos', 'alunos'])->all(),
+        );
+        $this->assertSame($this->turmaOtto->id, $resposta->json('data.comissoes.0.turma.id'));
+    }
+
     public function test_mes_atual_e_parcial_e_mes_futuro_e_recusado(): void
     {
         $this->comoUsuario($this->usuarioProfessor, $this->instituicao)
@@ -369,6 +399,33 @@ class AreaProfessorGanhosTest extends TestCase
             ->assertJsonPath('data.fechamento.conta', null);
 
         $this->assertSame(0, Conta::withoutGlobalScopes()->where('tipo', 'despesa')->count());
+    }
+
+    public function test_fechamento_sem_modulo_financeiro_nao_gera_despesa(): void
+    {
+        $plano = PlanoAssinatura::create([
+            'slug' => 'sem-financeiro',
+            'nome' => 'Sem Financeiro',
+            'preco_mensal' => 10,
+            'limite_alunos' => 50,
+            'modulos' => ['leads'],
+            'ativo' => true,
+        ]);
+
+        $this->instituicao->update([
+            'assinatura_status' => Instituicao::ASSINATURA_ACTIVE,
+            'id_plano_assinatura' => $plano->id,
+            'assinatura_inicia_em' => '2026-01-01',
+        ]);
+
+        $this->fecharSetembro()
+            ->assertCreated()
+            ->assertJsonPath('data.situacao', 'fechado')
+            ->assertJsonPath('data.resumo.valor_total', 1375)
+            ->assertJsonPath('data.fechamento.conta', null);
+
+        $this->assertSame(0, Conta::withoutGlobalScopes()->where('tipo', 'despesa')->count());
+        $this->assertSame(1, FechamentoProfessor::withoutGlobalScopes()->count());
     }
 
     public function test_reabrir_mes_exclui_a_despesa_pendente_e_recusa_se_ja_paga(): void
