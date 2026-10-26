@@ -14,6 +14,7 @@ use OpenApi\Attributes as OA;
     properties: [
         new OA\Property(property: "id_apresentacao", type: "integer"),
         new OA\Property(property: "id_aluno", type: "integer"),
+        new OA\Property(property: "papel", type: "string", maxLength: 80, nullable: true),
         new OA\Property(property: "tamanho_figurino", type: "string", maxLength: 10, nullable: true),
         new OA\Property(property: "valor_figurino", type: "number", format: "float", nullable: true),
         new OA\Property(property: "pago_figurino", type: "boolean", default: false),
@@ -42,6 +43,7 @@ class StoreApresentacaoAlunoRequest extends FormRequest
         return [
             'id_apresentacao' => ['required', InstituicaoContext::existsRule('apresentacoes')],
             'id_aluno' => ['required', InstituicaoContext::existsRule('alunos')],
+            'papel' => 'nullable|string|max:80',
             'tamanho_figurino' => 'nullable|string|max:10',
             'valor_figurino' => 'nullable|numeric|min:0',
             'pago_figurino' => 'boolean',

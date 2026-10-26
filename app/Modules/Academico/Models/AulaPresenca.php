@@ -4,6 +4,7 @@ namespace App\Modules\Academico\Models;
 
 use App\Modules\Core\Models\Concerns\PertenceAInstituicao;
 use App\Modules\Core\Models\User;
+use App\Modules\Pessoas\Support\AlunosVinculados;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -38,6 +39,9 @@ class AulaPresenca extends Model
 
     public function scopeVisivelPara(Builder $query, User $user): Builder
     {
-        return $user->role === 'aluno' ? $query->where('id_aluno', $user->aluno?->id) : $query;
+        return match ($user->role) {
+            'aluno', 'responsavel' => $query->whereIn('id_aluno', AlunosVinculados::ids($user)),
+            default => $query,
+        };
     }
 }

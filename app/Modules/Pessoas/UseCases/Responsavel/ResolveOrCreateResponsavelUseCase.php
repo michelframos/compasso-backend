@@ -6,6 +6,7 @@ use App\Modules\Core\Contracts\UserRepositoryInterface;
 use App\Modules\Core\Support\InstituicaoContext;
 use App\Modules\Pessoas\Models\Aluno;
 use App\Modules\Pessoas\Models\Responsavel;
+use Illuminate\Support\Str;
 
 class ResolveOrCreateResponsavelUseCase
 {
@@ -75,7 +76,8 @@ class ResolveOrCreateResponsavelUseCase
             'telefone' => $data['responsavel_telefone'] ?? null,
             'whatsapp' => $data['responsavel_whatsapp'] ?? null,
             'role' => 'responsavel',
-            'senha' => null,
+            'password' => Str::password(16),
+            'deve_trocar_senha' => true,
             'cep' => $data['responsavel_cep'] ?? null,
             'rua' => $data['responsavel_rua'] ?? null,
             'numero' => $data['responsavel_numero'] ?? null,

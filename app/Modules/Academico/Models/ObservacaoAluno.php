@@ -57,7 +57,9 @@ class ObservacaoAluno extends Model
                 'id_aluno',
                 Matricula::query()->visivelPara($user)->vigentes()->select('id_aluno')
             ),
-            'aluno' => $query->whereRaw('1 = 0'),
+            'aluno' => $query
+                ->where('visivel_responsavel', true)
+                ->where('id_aluno', $user->aluno?->id ?? 0),
             'responsavel' => $query
                 ->where('visivel_responsavel', true)
                 ->whereHas('aluno.responsaveis', fn (Builder $q) => $q

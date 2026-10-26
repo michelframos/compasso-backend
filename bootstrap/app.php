@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ensure.plano.modulo' => \App\Modules\Core\Http\Middleware\EnsurePlanoModulo::class,
             'ensure.senha.atualizada' => \App\Modules\Core\Http\Middleware\EnsureSenhaAtualizada::class,
             'ensure.perfil.professor' => \App\Modules\Pessoas\Http\Middleware\EnsurePerfilProfessor::class,
+            'ensure.perfil.aluno' => \App\Modules\Pessoas\Http\Middleware\EnsurePerfilAluno::class,
             'super_admin' => \App\Modules\Core\Http\Middleware\EnsureSuperAdmin::class,
         ]);
     })

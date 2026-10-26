@@ -5,6 +5,7 @@ namespace App\Modules\Academico\Services;
 use App\Modules\Academico\Models\Turma;
 use App\Modules\Academico\Models\AulaTurma;
 use App\Modules\Academico\Models\DisponibilidadeProfessor;
+use App\Modules\Academico\Models\SolicitacaoReposicao;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Collection;
@@ -121,6 +122,54 @@ class ClassSchedulingService
             ->with(['turma.curso', 'turma.nivel', 'aluno_especifico.usuario'])
             ->orderBy('hora_inicio')
             ->get();
+    }
+
+    /** Aulas não canceladas do aluno que se sobrepõem ao horário, inclusive reposição já pedida. */
+    public function conflitosDoAluno(int $idAluno, string $data, string $inicio, string $termino, array $ignorarAulas = []): Collection
+    {
+        return AulaTurma::query()
+            ->where('status', '!=', 'cancelada')
+            ->whereDate('data', $data)
+            ->where('hora_inicio', '<', $this->hora($termino))
+            ->where('hora_termino', '>', $this->hora($inicio))
+            ->when($ignorarAulas !== [], fn ($q) => $q->whereNotIn('id', $ignorarAulas))
+            ->where(fn ($q) => $q
+                ->where('id_aluno_especifico', $idAluno)
+                ->orWhere(fn ($turma) => $turma
+                    ->whereNull('id_aluno_especifico')
+                    ->whereHas('turma.matriculas', fn ($m) => $m->where('id_aluno', $idAluno)->vigentes()))
+                ->orWhereHas('reposicoesDestino', fn ($pedido) => $pedido
+                    ->where('id_aluno', $idAluno)
+                    ->whereIn('status', SolicitacaoReposicao::ABERTAS)))
+            ->orderBy('hora_inicio')
+            ->get();
+    }
+
+    /** Vaga na turma, descontando matrículas vigentes e reposições pendentes ou aprovadas de outros alunos. */
+    public function temVaga(AulaTurma $aula, int $idAluno): bool
+    {
+        if ($aula->id_turma === null) {
+            return false;
+        }
+
+        if ($aula->id_aluno_especifico !== null && (int) $aula->id_aluno_especifico !== $idAluno) {
+            return false;
+        }
+
+        $turma = $aula->relationLoaded('turma') ? $aula->turma : $aula->turma()->first();
+
+        if ($turma === null) {
+            return false;
+        }
+
+        $matriculados = $turma->matriculas()->vigentes()->pluck('id_aluno');
+        $reservados = SolicitacaoReposicao::query()
+            ->where('id_aula_turma_destino', $aula->id)
+            ->whereIn('status', SolicitacaoReposicao::ABERTAS)
+            ->where('id_aluno', '!=', $idAluno)
+            ->pluck('id_aluno');
+
+        return $matriculados->merge($reservados)->unique()->count() < (int) $turma->maximo_alunos;
     }
 
     /** Null quando o professor não cadastrou disponibilidade (não há o que avisar). */

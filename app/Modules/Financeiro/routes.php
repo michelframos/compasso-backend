@@ -1,5 +1,7 @@
 <?php
 
+use App\Modules\Financeiro\Http\Controllers\AlunoContratoController;
+use App\Modules\Financeiro\Http\Controllers\AlunoFinanceiroController;
 use App\Modules\Financeiro\Http\Controllers\CarneController;
 use App\Modules\Financeiro\Http\Controllers\CategoriaContaController;
 use App\Modules\Financeiro\Http\Controllers\ConfiguracaoPixController;
@@ -30,4 +32,22 @@ Route::middleware(['auth:sanctum', 'ensure.instituicao.membership', 'ensure.plan
 
     Route::apiResource('contas', ContaController::class)->only(['index', 'show']);
     Route::get('contas/{conta}/pagamentos', [ContaPagamentoController::class, 'index']);
+
+    Route::middleware(['ensure.senha.atualizada', 'role:aluno,responsavel', 'ensure.perfil.aluno'])
+        ->prefix('aluno/me')
+        ->group(function () {
+            Route::get('contas/consolidado', [AlunoFinanceiroController::class, 'consolidado']);
+            Route::get('contas', [AlunoFinanceiroController::class, 'contas']);
+            Route::get('contas/{conta}/pix', [AlunoFinanceiroController::class, 'pix']);
+            Route::post('carne', [AlunoFinanceiroController::class, 'carne']);
+            Route::get('pagamentos/{pagamento}/recibo', [AlunoFinanceiroController::class, 'recibo']);
+        });
 });
+
+Route::middleware(['auth:sanctum', 'ensure.instituicao.membership', 'ensure.senha.atualizada', 'role:aluno,responsavel', 'ensure.perfil.aluno'])
+    ->prefix('aluno/me')
+    ->group(function () {
+        Route::get('contratos', [AlunoContratoController::class, 'index']);
+        Route::get('contratos/{alunoContrato}/pdf', [AlunoContratoController::class, 'pdf']);
+        Route::post('contratos/{alunoContrato}/aceite', [AlunoContratoController::class, 'aceite']);
+    });

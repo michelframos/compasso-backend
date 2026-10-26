@@ -17,6 +17,7 @@ class Instrumento extends Model
         'status',
         'id_aluno',
         'data_emprestimo',
+        'data_prevista_devolucao',
         'observacoes',
     ];
 

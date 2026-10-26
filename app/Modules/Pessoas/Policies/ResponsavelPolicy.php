@@ -8,6 +8,15 @@ use Illuminate\Auth\Access\Response;
 
 class ResponsavelPolicy
 {
+    public function listarDependentes(User $user): Response
+    {
+        if ($user->role === 'responsavel' && $user->responsavel !== null) {
+            return Response::allow();
+        }
+
+        return Response::deny('Acesso restrito: apenas o responsável consulta os dependentes.');
+    }
+
     public function view(User $user, Responsavel $responsavel): Response
     {
         return $this->somenteOProprio($user, $responsavel, 'Acesso negado: Você não pode visualizar o perfil de outro responsável.');

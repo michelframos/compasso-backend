@@ -12,6 +12,8 @@ class ResponsavelAluno extends Pivot
 
     protected $table = 'responsaveis_alunos';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'id_instituicao',
         'id_aluno',

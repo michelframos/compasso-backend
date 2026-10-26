@@ -4,6 +4,7 @@ namespace App\Modules\Financeiro\Queries;
 
 use App\Modules\Financeiro\Queries\Situacao\Atrasadas;
 use App\Modules\Financeiro\Queries\Situacao\AVencer;
+use App\Modules\Financeiro\Queries\Situacao\EmAberto;
 use App\Modules\Financeiro\Queries\Situacao\Pagas;
 use App\Modules\Financeiro\Queries\Situacao\SituacaoContaFiltro;
 use App\Modules\Financeiro\Queries\Situacao\VencendoHoje;
@@ -13,6 +14,7 @@ class ContaQuery
 {
     /** @var array<string, class-string<SituacaoContaFiltro>> */
     private const SITUACOES = [
+        'em_aberto' => EmAberto::class,
         'a_vencer' => AVencer::class,
         'vencendo_hoje' => VencendoHoje::class,
         'atrasadas' => Atrasadas::class,

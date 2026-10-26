@@ -2,6 +2,8 @@
 
 namespace App\Modules\Pessoas\Providers;
 
+use App\Modules\Core\Contracts\AlunoAlvoResolverPort;
+use App\Modules\Pessoas\Adapters\AlunoAlvoResolverAdapter;
 use App\Modules\Pessoas\Models\MedidaAluno;
 use App\Modules\Pessoas\Models\Responsavel;
 use App\Modules\Pessoas\Policies\MedidaAlunoPolicy;
@@ -14,7 +16,7 @@ class PessoasServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->bind(AlunoAlvoResolverPort::class, AlunoAlvoResolverAdapter::class);
     }
 
     public function boot(): void

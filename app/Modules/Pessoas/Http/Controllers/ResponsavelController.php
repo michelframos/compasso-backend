@@ -8,6 +8,8 @@ use App\Modules\Pessoas\Http\Requests\Responsavel\UpdateResponsavelRequest;
 use App\Modules\Pessoas\Models\Responsavel;
 use App\Modules\Core\Contracts\UserRepositoryInterface;
 use App\Modules\Pessoas\UseCases\Responsavel\CreateResponsavelUseCase;
+use App\Modules\Pessoas\UseCases\Responsavel\EnviarAcessoResponsavelUseCase;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -21,6 +23,7 @@ class ResponsavelController extends Controller
 {
     public function __construct(
         private readonly CreateResponsavelUseCase $createResponsavel,
+        private readonly EnviarAcessoResponsavelUseCase $enviarAcessoResponsavel,
         private readonly UserRepositoryInterface $users,
     ) {}
 
@@ -136,6 +139,8 @@ class ResponsavelController extends Controller
             $userData = $request->only(['nome', 'email', 'cpf', 'telefone', 'whatsapp']);
             if ($request->filled('password')) {
                 $userData['password'] = $request->password;
+                $userData['deve_trocar_senha'] = true;
+                $responsavel->usuario?->tokens()->delete();
             }
 
             if ($responsavel->usuario) {
@@ -172,10 +177,35 @@ class ResponsavelController extends Controller
             $user = $responsavel->usuario;
             $responsavel->delete();
             if ($user) {
+                $user->tokens()->delete();
                 $this->users->delete($user);
             }
 
             return response()->json(null, 204);
         });
+    }
+
+    #[OA\Post(
+        path: '/api/responsaveis/{id}/enviar-acesso',
+        summary: 'Enviar ao responsável o código para definir/redefinir a senha de acesso',
+        security: [['sanctum' => []]],
+        tags: ['Pessoas'],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [
+            new OA\Response(response: 200, description: 'Código de acesso enviado por e-mail'),
+            new OA\Response(response: 403, description: 'Perfil sem permissão'),
+            new OA\Response(response: 404, description: 'Responsável não encontrado'),
+            new OA\Response(response: 422, description: 'Responsável sem e-mail cadastrado'),
+        ]
+    )]
+    public function enviarAcesso(Responsavel $responsavel)
+    {
+        try {
+            $email = $this->enviarAcessoResponsavel->execute($responsavel);
+        } catch (HttpException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
+        }
+
+        return response()->json(['message' => "Código de acesso enviado para {$email}."]);
     }
 }

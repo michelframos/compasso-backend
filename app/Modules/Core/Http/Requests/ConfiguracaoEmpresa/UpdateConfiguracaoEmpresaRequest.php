@@ -20,6 +20,12 @@ class UpdateConfiguracaoEmpresaRequest extends FormRequest
         if ($this->has('cnpj')) {
             $this->merge(['cnpj' => Cnpj::normalize($this->input('cnpj'))]);
         }
+
+        foreach (['limite_reposicoes_periodo', 'prazo_reposicao_dias'] as $campo) {
+            if ($this->has($campo) && $this->input($campo) === '') {
+                $this->merge([$campo => null]);
+            }
+        }
     }
 
     public function rules(): array
@@ -40,6 +46,9 @@ class UpdateConfiguracaoEmpresaRequest extends FormRequest
             'cep' => 'nullable|string|max:10',
             'id_estado' => 'nullable|exists:estados,id',
             'id_cidade' => 'nullable|exists:cidades,id',
+            'permitir_aluno_editar_medidas' => 'sometimes|boolean',
+            'limite_reposicoes_periodo' => 'sometimes|nullable|integer|min:0|max:99',
+            'prazo_reposicao_dias' => 'sometimes|nullable|integer|min:0|max:365',
         ];
     }
 }

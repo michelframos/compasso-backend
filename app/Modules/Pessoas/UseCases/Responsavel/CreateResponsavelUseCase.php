@@ -5,6 +5,7 @@ namespace App\Modules\Pessoas\UseCases\Responsavel;
 use App\Modules\Core\Contracts\UserRepositoryInterface;
 use App\Modules\Pessoas\Models\Responsavel;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class CreateResponsavelUseCase
 {
@@ -31,11 +32,8 @@ class CreateResponsavelUseCase
                 'id_cidade' => $data['id_cidade'] ?? null,
             ];
 
-            if (! empty($data['password'])) {
-                $userPayload['password'] = $data['password'];
-            } else {
-                $userPayload['senha'] = null;
-            }
+            $userPayload['password'] = filled($data['password'] ?? null) ? $data['password'] : Str::password(16);
+            $userPayload['deve_trocar_senha'] = true;
 
             $user = $this->users->create($userPayload);
 

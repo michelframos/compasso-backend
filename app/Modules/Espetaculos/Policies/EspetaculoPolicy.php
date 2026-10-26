@@ -13,13 +13,15 @@ class EspetaculoPolicy
 
     public function view(User $user, Espetaculo $espetaculo): Response
     {
-        if ($user->role !== 'professor') {
+        if (! in_array($user->role, ['professor', 'aluno', 'responsavel'], true)) {
             return Response::allow();
         }
 
         return $this->permitirSe(
             Espetaculo::query()->visivelPara($user)->whereKey($espetaculo->id)->exists(),
-            'Acesso restrito: você não tem turmas nem alunos neste espetáculo.'
+            $user->role === 'professor'
+                ? 'Acesso restrito: você não tem turmas nem alunos neste espetáculo.'
+                : 'Acesso restrito: este espetáculo não é seu.'
         );
     }
 }

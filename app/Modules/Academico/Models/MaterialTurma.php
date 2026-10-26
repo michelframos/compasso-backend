@@ -4,6 +4,7 @@ namespace App\Modules\Academico\Models;
 
 use App\Modules\Core\Models\Concerns\PertenceAInstituicao;
 use App\Modules\Core\Models\User;
+use App\Modules\Pessoas\Support\AlunosVinculados;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -36,9 +37,9 @@ class MaterialTurma extends Model
     {
         return match ($user->role) {
             'professor' => $query->whereHas('turma', fn (Builder $q) => $q->where('id_professor', $user->professor?->id ?? 0)),
-            'aluno' => $query
+            'aluno', 'responsavel' => $query
                 ->where('publico', true)
-                ->whereHas('turma.matriculas', fn (Builder $q) => $q->where('id_aluno', $user->aluno?->id ?? 0)),
+                ->whereHas('turma.matriculas', fn (Builder $q) => $q->whereIn('id_aluno', AlunosVinculados::ids($user))),
             default => $query,
         };
     }

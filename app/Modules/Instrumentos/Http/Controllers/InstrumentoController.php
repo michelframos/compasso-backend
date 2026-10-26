@@ -75,6 +75,7 @@ class InstrumentoController extends Controller
         $instrumento->update([
             'id_aluno' => $request->id_aluno,
             'data_emprestimo' => $request->data_emprestimo,
+            'data_prevista_devolucao' => $request->data_prevista_devolucao,
             'status' => 'emprestado'
         ]);
 
@@ -113,6 +114,7 @@ class InstrumentoController extends Controller
         $instrumento->update([
             'id_aluno' => null,
             'data_emprestimo' => null,
+            'data_prevista_devolucao' => null,
             'status' => 'disponivel'
         ]);
 

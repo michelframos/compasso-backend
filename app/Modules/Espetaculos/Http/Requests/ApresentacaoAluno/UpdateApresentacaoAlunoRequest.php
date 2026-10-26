@@ -10,6 +10,7 @@ use OpenApi\Attributes as OA;
     description: "Request para atualização de Apresentação Aluno",
     type: "object",
     properties: [
+        new OA\Property(property: "papel", type: "string", maxLength: 80, nullable: true),
         new OA\Property(property: "tamanho_figurino", type: "string", maxLength: 10, nullable: true),
         new OA\Property(property: "valor_figurino", type: "number", format: "float", nullable: true),
         new OA\Property(property: "pago_figurino", type: "boolean"),
@@ -36,6 +37,7 @@ class UpdateApresentacaoAlunoRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'papel' => 'nullable|string|max:80',
             'tamanho_figurino' => 'nullable|string|max:10',
             'valor_figurino' => 'nullable|numeric|min:0',
             'pago_figurino' => 'boolean',

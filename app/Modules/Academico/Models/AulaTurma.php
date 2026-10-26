@@ -85,6 +85,11 @@ class AulaTurma extends Model
     {
         return $this->hasMany(AulaPresenca::class, 'id_aula_turma');
     }
+
+    public function reposicoesDestino()
+    {
+        return $this->hasMany(SolicitacaoReposicao::class, 'id_aula_turma_destino');
+    }
     public function conta()
     {
         return $this->hasOne(\App\Models\Conta::class, 'id_aula_turma');

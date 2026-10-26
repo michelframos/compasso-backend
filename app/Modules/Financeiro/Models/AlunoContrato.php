@@ -16,7 +16,19 @@ class AlunoContrato extends Model
         'aluno_id',
         'contrato_id',
         'contrato_gerado',
+        'aceito_em',
+        'aceito_por_usuario_id',
+        'ip_aceite',
+        'user_agent_aceite',
+        'hash_conteudo',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'aceito_em' => 'datetime',
+        ];
+    }
 
     public function aluno()
     {

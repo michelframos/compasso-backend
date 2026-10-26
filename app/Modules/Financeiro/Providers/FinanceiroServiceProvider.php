@@ -8,13 +8,17 @@ use App\Modules\Core\Contracts\CriarContaAulaPort;
 use App\Modules\Core\Contracts\CriarContaEmprestimoInstrumentoPort;
 use App\Modules\Core\Contracts\GerarMensalidadesPort;
 use App\Modules\Core\Contracts\GerarPagamentoProfessorPort;
+use App\Modules\Core\Contracts\ResumoFinanceiroAlunoPort;
 use App\Modules\Financeiro\Adapters\CobrancaAulaAdapter;
 use App\Modules\Financeiro\Adapters\CriarCobrancasFigurinoAdapter;
 use App\Modules\Financeiro\Adapters\CriarContaAulaAdapter;
 use App\Modules\Financeiro\Adapters\CriarContaEmprestimoInstrumentoAdapter;
 use App\Modules\Financeiro\Adapters\GerarMensalidadesAdapter;
 use App\Modules\Financeiro\Adapters\GerarPagamentoProfessorAdapter;
+use App\Modules\Financeiro\Adapters\ResumoFinanceiroAlunoAdapter;
+use App\Modules\Financeiro\Models\AlunoContrato;
 use App\Modules\Financeiro\Models\Conta;
+use App\Modules\Financeiro\Policies\AlunoContratoPolicy;
 use App\Modules\Financeiro\Policies\ContaPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -30,11 +34,13 @@ class FinanceiroServiceProvider extends ServiceProvider
         $this->app->bind(CriarContaEmprestimoInstrumentoPort::class, CriarContaEmprestimoInstrumentoAdapter::class);
         $this->app->bind(GerarPagamentoProfessorPort::class, GerarPagamentoProfessorAdapter::class);
         $this->app->bind(CobrancaAulaPort::class, CobrancaAulaAdapter::class);
+        $this->app->bind(ResumoFinanceiroAlunoPort::class, ResumoFinanceiroAlunoAdapter::class);
     }
 
     public function boot(): void
     {
         Gate::policy(Conta::class, ContaPolicy::class);
+        Gate::policy(AlunoContrato::class, AlunoContratoPolicy::class);
 
         Route::middleware('api')
             ->prefix('api')
