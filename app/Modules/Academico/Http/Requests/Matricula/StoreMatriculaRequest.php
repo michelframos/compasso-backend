@@ -5,8 +5,8 @@ namespace App\Modules\Academico\Http\Requests\Matricula;
 use App\Modules\Core\Support\InstituicaoContext;
 use Illuminate\Foundation\Http\FormRequest;
 use OpenApi\Attributes as OA;
-use App\Models\Turma;
-use App\Models\Matricula;
+use App\Modules\Academico\Models\Matricula;
+use App\Modules\Academico\Models\Turma;
 use App\Enums\TurmaStatus;
 
 #[OA\Schema(
