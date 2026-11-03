@@ -1,0 +1,26 @@
+{
+    "inter": {
+        "normal": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/inter_normal_3f26056cd420cc7b578f2a747b6c16f9",
+        "bold": "inter_bold_397e48164bb6d1241111ddcec91f33bc"
+    },
+    "roboto": {
+        "normal": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/roboto_normal_3ab822ddc314830e6aaceb7638b2a47f",
+        "bold": "roboto_bold_88d59da2fbf6bd1aeb37a56f13c94b3c"
+    },
+    "montserrat": {
+        "normal": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/montserrat_normal_49c541afa7243f96b243294814ac9d5b",
+        "bold": "montserrat_bold_e24b15d5a43dd0da7c1b7dcca820371f"
+    },
+    "playfair display": {
+        "normal": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/playfair_display_normal_88935f895bd53ae2bbae328a08aefe0b",
+        "bold": "playfair_display_bold_9891eed5a17637f52abae3ff1e4ad8e7"
+    },
+    "lora": {
+        "normal": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/lora_normal_805448eaabcbc422a5dad154f626cb42",
+        "bold": "lora_bold_a1004574a9bc894a2ed831de624ff419"
+    },
+    "great vibes": {
+        "normal": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/great_vibes_normal_6bdb21d500b0fdcc632a527a967a77a3",
+        "bold": "great_vibes_bold_6bdb21d500b0fdcc632a527a967a77a3"
+    }
+}

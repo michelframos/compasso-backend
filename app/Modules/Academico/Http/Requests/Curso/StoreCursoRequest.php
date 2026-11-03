@@ -35,6 +35,7 @@ class StoreCursoRequest extends FormRequest
             'nome' => ['required', 'string', 'max:100'],
             'descricao' => ['nullable', 'string'],
             'contrato_id' => ['nullable', 'integer', InstituicaoContext::existsRule('contratos')],
+            'id_template_certificado' => ['nullable', 'integer', InstituicaoContext::existsRule('templates_certificados')],
         ];
     }
 }

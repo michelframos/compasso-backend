@@ -27,6 +27,8 @@ class Certificado extends Model
         'codigo_verificacao',
         'emitido_em',
         'carga_horaria',
+        'conteudo_gerado',
+        'fundo_path',
     ];
 
     protected function casts(): array

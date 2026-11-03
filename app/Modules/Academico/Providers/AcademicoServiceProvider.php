@@ -6,6 +6,7 @@ use App\Modules\Academico\Listeners\AtualizarDestinatarioAviso;
 use App\Modules\Academico\Models\AulaTurma;
 use App\Modules\Academico\Models\AvaliacaoAluno;
 use App\Modules\Academico\Models\Certificado;
+use App\Modules\Academico\Models\TemplateCertificado;
 use App\Modules\Academico\Models\AvisoTurma;
 use App\Modules\Academico\Models\JustificativaFalta;
 use App\Modules\Academico\Models\MaterialTurma;
@@ -18,6 +19,7 @@ use App\Modules\Academico\Models\Turma;
 use App\Modules\Academico\Policies\AulaTurmaPolicy;
 use App\Modules\Academico\Policies\AvaliacaoAlunoPolicy;
 use App\Modules\Academico\Policies\CertificadoPolicy;
+use App\Modules\Academico\Policies\TemplateCertificadoPolicy;
 use App\Modules\Academico\Policies\AvisoTurmaPolicy;
 use App\Modules\Academico\Policies\FichaAlunoPolicy;
 use App\Modules\Academico\Policies\JustificativaFaltaPolicy;
@@ -46,6 +48,7 @@ class AcademicoServiceProvider extends ServiceProvider
     {
         Gate::policy(Matricula::class, MatriculaPolicy::class);
         Gate::policy(Certificado::class, CertificadoPolicy::class);
+        Gate::policy(TemplateCertificado::class, TemplateCertificadoPolicy::class);
         Gate::policy(Turma::class, TurmaPolicy::class);
         Gate::policy(AulaTurma::class, AulaTurmaPolicy::class);
         Gate::policy(JustificativaFalta::class, JustificativaFaltaPolicy::class);

@@ -5,6 +5,7 @@ use App\Modules\Academico\Http\Controllers\AlunoBoletimController;
 use App\Modules\Academico\Http\Controllers\AlunoCertificadoController;
 use App\Modules\Academico\Http\Controllers\AlunoFrequenciaController;
 use App\Modules\Academico\Http\Controllers\CertificadoController;
+use App\Modules\Academico\Http\Controllers\TemplateCertificadoController;
 use App\Modules\Academico\Http\Controllers\PublicCertificadoController;
 use App\Modules\Academico\Http\Controllers\AlunoJustificativaController;
 use App\Modules\Academico\Http\Controllers\AlunoReposicaoController;
@@ -111,6 +112,11 @@ Route::middleware(['auth:sanctum', 'ensure.instituicao.membership', 'ensure.senh
         Route::post('matriculas/{matricula}/gerar-mensalidades', [MatriculaController::class, 'gerarMensalidades']);
         Route::get('certificados', [CertificadoController::class, 'index']);
         Route::post('matriculas/{matricula}/certificados', [CertificadoController::class, 'store']);
+        Route::apiResource('templates-certificados', TemplateCertificadoController::class)
+            ->parameters(['templates-certificados' => 'templateCertificado']);
+        Route::post('templates-certificados/{templateCertificado}/fundo', [TemplateCertificadoController::class, 'uploadFundo']);
+        Route::delete('templates-certificados/{templateCertificado}/fundo', [TemplateCertificadoController::class, 'destroyFundo']);
+        Route::post('templates-certificados/{templateCertificado}/elementos', [TemplateCertificadoController::class, 'uploadElemento']);
         Route::get('professores/{professor}/disponibilidades', [DisponibilidadeProfessorController::class, 'doProfessor']);
         Route::get('solicitacoes-aulas', [SolicitacaoAulaController::class, 'index']);
         Route::post('solicitacoes-aulas/{solicitacaoAula}/decisao', [SolicitacaoAulaController::class, 'decidir']);
