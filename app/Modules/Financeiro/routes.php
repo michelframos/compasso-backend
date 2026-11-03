@@ -48,6 +48,7 @@ Route::middleware(['auth:sanctum', 'ensure.instituicao.membership', 'ensure.senh
     ->prefix('aluno/me')
     ->group(function () {
         Route::get('contratos', [AlunoContratoController::class, 'index']);
-        Route::get('contratos/{alunoContrato}/pdf', [AlunoContratoController::class, 'pdf']);
+        Route::get('contratos/{tipo}/{id}/pdf', [AlunoContratoController::class, 'pdf'])
+            ->where(['tipo' => 'avulso|matricula|instrumento|espetaculo', 'id' => '[0-9]+']);
         Route::post('contratos/{alunoContrato}/aceite', [AlunoContratoController::class, 'aceite']);
     });

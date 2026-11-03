@@ -8,11 +8,13 @@ use App\Modules\Core\Contracts\AlunoAlvoResolverPort;
 use App\Modules\Financeiro\Http\Requests\AlunoContrato\ConsultarContratoDoAlunoRequest;
 use App\Modules\Financeiro\Http\Resources\ContratoDoAlunoResource;
 use App\Modules\Financeiro\Models\AlunoContrato;
+use App\Modules\Financeiro\Queries\ListContratosDoAlunoQuery;
 use App\Modules\Financeiro\UseCases\AlunoContrato\AceitarContratoUseCase;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Gate;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class AlunoContratoController extends Controller
 {
@@ -20,7 +22,7 @@ class AlunoContratoController extends Controller
 
     #[OA\Get(
         path: '/api/aluno/me/contratos',
-        summary: 'Contratos gerados para o aluno',
+        summary: 'Contratos vinculados ao aluno (avulso, matrícula, empréstimo ativo e espetáculo)',
         security: [['sanctum' => []]],
         tags: ['Financeiro'],
         parameters: [
@@ -35,27 +37,22 @@ class AlunoContratoController extends Controller
             new OA\Response(response: 422, description: 'Responsável sem id_aluno'),
         ]
     )]
-    public function index(ConsultarContratoDoAlunoRequest $request)
+    public function index(ConsultarContratoDoAlunoRequest $request, ListContratosDoAlunoQuery $query)
     {
         $aluno = $this->alunoAlvo($request);
         Gate::authorize('viewAnyDoAluno', [AlunoContrato::class, $aluno->id]);
 
-        $contratos = AlunoContrato::query()
-            ->with('contrato')
-            ->where('aluno_id', $aluno->id)
-            ->orderByDesc('id')
-            ->get();
-
-        return ContratoDoAlunoResource::collection($contratos);
+        return ContratoDoAlunoResource::collection($query->build($aluno->id));
     }
 
     #[OA\Get(
-        path: '/api/aluno/me/contratos/{alunoContrato}/pdf',
-        summary: 'PDF do contrato gerado para o aluno',
+        path: '/api/aluno/me/contratos/{tipo}/{id}/pdf',
+        summary: 'PDF do contrato vinculado ao aluno',
         security: [['sanctum' => []]],
         tags: ['Financeiro'],
         parameters: [
-            new OA\Parameter(name: 'alunoContrato', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'tipo', in: 'path', required: true, schema: new OA\Schema(type: 'string', enum: ['avulso', 'matricula', 'instrumento', 'espetaculo'])),
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
             new OA\Parameter(name: 'id_aluno', in: 'query', required: false, description: 'Obrigatório para o responsável', schema: new OA\Schema(type: 'integer')),
         ],
         responses: [
@@ -66,25 +63,32 @@ class AlunoContratoController extends Controller
             new OA\Response(response: 422, description: 'Responsável sem id_aluno'),
         ]
     )]
-    public function pdf(ConsultarContratoDoAlunoRequest $request, AlunoContrato $alunoContrato)
+    public function pdf(ConsultarContratoDoAlunoRequest $request, string $tipo, int $id, ListContratosDoAlunoQuery $query)
     {
-        $this->garantir($request, $alunoContrato);
-        $alunoContrato->loadMissing('contrato', 'aluno.usuario');
+        $aluno = $this->alunoAlvo($request);
+        Gate::authorize('viewAnyDoAluno', [AlunoContrato::class, $aluno->id]);
 
-        $aceitoEm = $alunoContrato->aceito_em
-            ? substr((string) $alunoContrato->aceito_em, 0, 16)
-            : null;
+        if (! in_array($tipo, ['avulso', 'matricula', 'instrumento', 'espetaculo'], true)) {
+            throw new NotFoundHttpException('Tipo de contrato inválido.');
+        }
+
+        $contrato = $query->resolver($aluno->id, $tipo, $id);
+        if (! $contrato) {
+            throw new NotFoundHttpException('Contrato não encontrado.');
+        }
+
+        $aluno->loadMissing('usuario');
 
         $pdf = Pdf::loadView('pdf.contrato', [
             'escola' => ConfiguracaoEmpresa::query()->value('nome_fantasia') ?? 'Escola',
-            'nome' => $alunoContrato->contrato?->nome ?? 'Contrato',
-            'aluno' => $alunoContrato->aluno?->usuario?->nome ?? 'Aluno',
-            'conteudo' => $alunoContrato->contrato_gerado ?? '',
-            'aceito_em' => $aceitoEm,
+            'nome' => $contrato['nome'] ?? 'Contrato',
+            'aluno' => $aluno->usuario?->nome ?? 'Aluno',
+            'conteudo' => $contrato['contrato_gerado'] ?? '',
+            'aceito_em' => null,
             'emitido_em' => now()->format('d/m/Y H:i'),
         ])->setPaper('a4', 'portrait');
 
-        return $pdf->download('contrato_'.$alunoContrato->id.'.pdf');
+        return $pdf->download('contrato_'.$tipo.'_'.$id.'.pdf');
     }
 
     #[OA\Post(
@@ -116,8 +120,15 @@ class AlunoContratoController extends Controller
             $request->ip(),
             $request->userAgent(),
         );
+        $aceito->loadMissing('contrato');
 
-        return new ContratoDoAlunoResource($aceito);
+        return new ContratoDoAlunoResource([
+            'tipo' => 'avulso',
+            'id' => $aceito->id,
+            'nome' => $aceito->contrato?->nome ?? 'Contrato',
+            'descricao' => 'Contrato avulso',
+            'contrato_gerado' => $aceito->contrato_gerado,
+        ]);
     }
 
     private function garantir(ConsultarContratoDoAlunoRequest $request, AlunoContrato $contrato, string $habilidade = 'view'): void

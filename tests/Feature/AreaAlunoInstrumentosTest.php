@@ -198,6 +198,7 @@ class AreaAlunoInstrumentosTest extends TestCase
             ->json('data');
 
         $this->assertCount(3, $lista);
+        $this->assertSame('avulso', $lista[0]['tipo']);
         $corpo = json_encode($lista);
         $this->assertStringContainsString('Termo da Ana', $corpo);
         $this->assertStringNotContainsString('Termo do Bruno', $corpo);
@@ -207,7 +208,8 @@ class AreaAlunoInstrumentosTest extends TestCase
         $this->withHeader('User-Agent', 'CompassoTest/1.0')
             ->postJson('/api/aluno/me/contratos/'.$this->termoAna->id.'/aceite')
             ->assertOk()
-            ->assertJsonPath('data.aceito', true);
+            ->assertJsonPath('data.tipo', 'avulso')
+            ->assertJsonPath('data.id', $this->termoAna->id);
 
         $aceito = $this->termoAna->fresh();
         $this->assertNotNull($aceito->aceito_em);
@@ -224,12 +226,12 @@ class AreaAlunoInstrumentosTest extends TestCase
         $this->postJson('/api/aluno/me/contratos/'.$this->termoBruno->id.'/aceite')
             ->assertForbidden();
 
-        $pdf = $this->get('/api/aluno/me/contratos/'.$this->termoAna->id.'/pdf');
+        $pdf = $this->get('/api/aluno/me/contratos/avulso/'.$this->termoAna->id.'/pdf');
         $pdf->assertOk();
         $this->assertStringContainsString('application/pdf', (string) $pdf->headers->get('content-type'));
         $this->assertStringStartsWith('%PDF', $pdf->getContent());
 
-        $this->get('/api/aluno/me/contratos/'.$this->termoBruno->id.'/pdf')->assertForbidden();
+        $this->get('/api/aluno/me/contratos/avulso/'.$this->termoBruno->id.'/pdf')->assertNotFound();
 
         $this->comoUsuario($this->usuarioRita, $this->instituicao)
             ->getJson('/api/aluno/me/contratos')
@@ -238,7 +240,7 @@ class AreaAlunoInstrumentosTest extends TestCase
 
         $this->postJson('/api/aluno/me/contratos/'.$this->termoRita->id.'/aceite?id_aluno='.$this->ana->id)
             ->assertOk()
-            ->assertJsonPath('data.aceito', true);
+            ->assertJsonPath('data.tipo', 'avulso');
 
         $this->assertSame($this->usuarioRita->id, $this->termoRita->fresh()->aceito_por_usuario_id);
         $this->postJson('/api/aluno/me/contratos/'.$this->termoBruno->id.'/aceite?id_aluno='.$this->ana->id)

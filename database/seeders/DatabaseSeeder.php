@@ -13,8 +13,10 @@ class DatabaseSeeder extends Seeder
      * 1. Geo (estados/cidades) — pulados se já existirem
      * 2. Platform (planos, site, depoimentos, super admin)
      * 3. Escolas demo + dados de domínio
+     * 4. Escola Michel (credenciais próprias — ver EscolaMichelSeeder)
      *
-     * Credenciais: ver saída do DemoTenantSeeder (senha: password).
+     * Credenciais demo: ver saída do DemoTenantSeeder (senha: password).
+     * Credenciais Escola Michel: ver saída do EscolaMichelSeeder (senha: Redo@2018).
      */
     public function run(): void
     {
@@ -36,6 +38,7 @@ class DatabaseSeeder extends Seeder
             DepoimentoSeeder::class,
             PlatformAdminSeeder::class,
             DemoTenantSeeder::class,
+            EscolaMichelSeeder::class,
         ]);
     }
 }

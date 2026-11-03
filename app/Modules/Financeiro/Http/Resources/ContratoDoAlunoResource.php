@@ -9,25 +9,33 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(
     schema: 'ContratoDoAlunoResource',
     title: 'ContratoDoAlunoResource',
-    description: 'Contrato gerado para o aluno. O aceite não expõe IP, navegador nem o hash.',
+    description: 'Contrato vinculado ao aluno (avulso, matrícula, empréstimo ativo ou espetáculo).',
     properties: [
+        new OA\Property(property: 'tipo', type: 'string', enum: ['avulso', 'matricula', 'instrumento', 'espetaculo']),
         new OA\Property(property: 'id', type: 'integer'),
         new OA\Property(property: 'nome', type: 'string', nullable: true),
+        new OA\Property(property: 'descricao', type: 'string', nullable: true),
         new OA\Property(property: 'contrato_gerado', type: 'string', nullable: true),
-        new OA\Property(property: 'aceito', type: 'boolean'),
-        new OA\Property(property: 'aceito_em', type: 'string', nullable: true, example: '2026-10-26 17:00'),
     ]
 )]
 class ContratoDoAlunoResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        return [
+        $item = is_array($this->resource) ? $this->resource : [
+            'tipo' => 'avulso',
             'id' => $this->id,
             'nome' => $this->contrato?->nome,
+            'descricao' => 'Contrato avulso',
             'contrato_gerado' => $this->contrato_gerado,
-            'aceito' => $this->aceito_em !== null,
-            'aceito_em' => $this->aceito_em ? substr((string) $this->aceito_em, 0, 16) : null,
+        ];
+
+        return [
+            'tipo' => $item['tipo'],
+            'id' => $item['id'],
+            'nome' => $item['nome'],
+            'descricao' => $item['descricao'] ?? null,
+            'contrato_gerado' => $item['contrato_gerado'],
         ];
     }
 }

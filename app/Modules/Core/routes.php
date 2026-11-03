@@ -47,6 +47,7 @@ Route::post('/ativacao/reenviar', [RegistroEscolaController::class, 'reenviarCod
 Route::middleware('throttle:login')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/platform/login', [AuthController::class, 'platformLogin']);
+    Route::post('/aluno/login', [AuthController::class, 'alunoLogin']);
     Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail']);
     Route::post('/reset-password', [PasswordResetController::class, 'reset']);
 });

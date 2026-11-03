@@ -202,7 +202,11 @@ class MedidaAlunoController extends Controller
     {
         Gate::authorize('viewAnyDoAluno', [MedidaAluno::class, (int) $id_aluno]);
 
-        $medidas = MedidaAluno::where('id_aluno', $id_aluno)->get();
+        $medidas = MedidaAluno::query()
+            ->where('id_aluno', $id_aluno)
+            ->orderByDesc('id')
+            ->get();
+
         return response()->json($medidas);
     }
 }

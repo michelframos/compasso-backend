@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Aluno;
 use App\Models\User;
 use App\Modules\Core\Models\Instituicao;
+use App\Modules\Core\Models\InstituicaoUsuario;
 use App\Modules\Core\Support\InstituicaoContext;
 use App\Modules\Core\Models\User as CoreUser;
 use App\Modules\Core\Notifications\ResetPasswordNotification;
@@ -205,5 +206,73 @@ class AreaAlunoAutenticacaoTest extends TestCase
             'password' => 'SenhaAtual123',
             'tenant_slug' => $this->instituicao->slug,
         ])->assertUnauthorized();
+    }
+
+    public function test_login_do_aluno_com_email_e_senha_resolve_a_escola(): void
+    {
+        $this->postJson('/api/aluno/login', [
+            'email' => $this->usuarioAluno->email,
+            'password' => 'SenhaAtual123',
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.email', $this->usuarioAluno->email)
+            ->assertJsonPath('data.role', 'aluno')
+            ->assertJsonPath('tenant.slug', $this->instituicao->slug)
+            ->assertJsonStructure(['token', 'tenant', 'tenants']);
+    }
+
+    public function test_login_do_aluno_rejeita_senha_errada(): void
+    {
+        $this->postJson('/api/aluno/login', [
+            'email' => $this->usuarioAluno->email,
+            'password' => 'senha-errada',
+        ])->assertUnauthorized();
+    }
+
+    public function test_login_do_aluno_rejeita_outros_papeis(): void
+    {
+        $professor = $this->criarUsuarioNaInstituicao($this->instituicao, 'professor', [
+            'email' => 'prof.login@escola.test',
+            'senha' => Hash::make('SenhaAtual123'),
+        ]);
+
+        $this->postJson('/api/aluno/login', [
+            'email' => $professor->email,
+            'password' => 'SenhaAtual123',
+        ])
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Este acesso é exclusivo para alunos e responsáveis.');
+    }
+
+    public function test_login_do_aluno_com_varias_escolas_exige_selecao(): void
+    {
+        $outra = Instituicao::create([
+            'slug' => 'segunda-escola',
+            'nome_fantasia' => 'Segunda Escola',
+            'status' => Instituicao::STATUS_ATIVO,
+        ]);
+
+        InstituicaoUsuario::create([
+            'id_instituicao' => $outra->id,
+            'id_usuario' => $this->usuarioAluno->id,
+            'role' => 'aluno',
+            'status' => InstituicaoUsuario::STATUS_ATIVO,
+        ]);
+
+        $this->postJson('/api/aluno/login', [
+            'email' => $this->usuarioAluno->email,
+            'password' => 'SenhaAtual123',
+        ])
+            ->assertStatus(409)
+            ->assertJsonPath('code', 'needs_tenant_selection')
+            ->assertJsonCount(2, 'tenants');
+
+        $this->postJson('/api/aluno/login', [
+            'email' => $this->usuarioAluno->email,
+            'password' => 'SenhaAtual123',
+            'tenant_slug' => $outra->slug,
+        ])
+            ->assertOk()
+            ->assertJsonPath('tenant.slug', 'segunda-escola');
     }
 }
