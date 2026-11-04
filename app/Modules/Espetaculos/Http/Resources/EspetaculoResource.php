@@ -34,10 +34,20 @@ class EspetaculoResource extends JsonResource
         return [
             'id' => $this->id,
             'titulo' => $this->titulo,
-            'data_evento' => $this->data_evento,
+            'data_evento' => $this->data_evento instanceof \Carbon\CarbonInterface
+                ? $this->data_evento->format('Y-m-d')
+                : $this->data_evento,
+            'hora_evento' => $this->hora_evento
+                ? substr((string) $this->hora_evento, 0, 5)
+                : null,
             'local' => $this->local,
             'status' => $this->status,
             'observacoes' => $this->observacoes,
+            'contrato_id' => $this->contrato_id,
+            'validade_ingresso_inicio' => $this->validade_ingresso_inicio?->toISOString(),
+            'validade_ingresso_fim' => $this->validade_ingresso_fim?->toISOString(),
+            'id_template_ingresso' => $this->id_template_ingresso,
+            'valor_ingresso_padrao' => $this->valor_ingresso_padrao,
             'created_at' => $this->created_at ? $this->created_at->toDateTimeString() : null,
             'updated_at' => $this->updated_at ? $this->updated_at->toDateTimeString() : null,
             'deleted_at' => $this->deleted_at ? $this->deleted_at->toDateTimeString() : null,

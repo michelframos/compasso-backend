@@ -9,6 +9,7 @@ return [
     App\Modules\Financeiro\Providers\FinanceiroServiceProvider::class,
     App\Modules\Comercial\Providers\ComercialServiceProvider::class,
     App\Modules\Espetaculos\Providers\EspetaculosServiceProvider::class,
+    App\Modules\Bilheteria\Providers\BilheteriaServiceProvider::class,
     App\Modules\Instrumentos\Providers\InstrumentosServiceProvider::class,
     App\Modules\Notificacoes\Providers\NotificacoesServiceProvider::class,
     App\Modules\Relatorios\Providers\RelatoriosServiceProvider::class,

@@ -39,10 +39,15 @@ class StoreEspetaculoRequest extends FormRequest
         return [
             'titulo' => ['required', 'string', 'max:255'],
             'data_evento' => ['required', 'date'],
+            'hora_evento' => ['nullable', 'date_format:H:i'],
             'local' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'in:planejamento,ensaios,concluido,cancelado'],
             'observacoes' => ['nullable', 'string'],
             'contrato_id' => ['nullable', InstituicaoContext::existsRule('contratos')],
+            'validade_ingresso_inicio' => ['nullable', 'date'],
+            'validade_ingresso_fim' => ['nullable', 'date', 'after_or_equal:validade_ingresso_inicio'],
+            'id_template_ingresso' => ['nullable', InstituicaoContext::existsRule('templates_ingressos')],
+            'valor_ingresso_padrao' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 }
