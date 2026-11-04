@@ -42,6 +42,7 @@ class DashboardResumoService
                     'value' => $this->formatMoney($faturamentoMensal, 0),
                     'icon' => 'DollarSign',
                     'href' => '/financeiro',
+                    'modulo' => 'financeiro',
                     'trend' => $this->trendPayload($trendFaturamento),
                 ],
                 [
@@ -49,7 +50,7 @@ class DashboardResumoService
                     'value' => $this->formatMoney($inadimplencia, 0),
                     'icon' => 'AlertCircle',
                     'href' => '/relatorios/financeiro/inadimplencia',
-                    'trend' => ['value' => 0, 'isUp' => false],
+                    'modulo' => 'financeiro',
                     'variant' => 'danger',
                 ],
                 [
@@ -57,6 +58,7 @@ class DashboardResumoService
                     'value' => $this->formatMoney($ticketMedio, 2),
                     'icon' => 'TrendingUp',
                     'href' => '/financeiro',
+                    'modulo' => 'financeiro',
                     'trend' => $this->trendPayload($trendTicket),
                 ],
                 [
@@ -64,7 +66,7 @@ class DashboardResumoService
                     'value' => (string) $leadsAtivos,
                     'icon' => 'UserPlus',
                     'href' => '/leads',
-                    'trend' => ['value' => 0, 'isUp' => true],
+                    'modulo' => 'leads',
                 ],
             ],
         ];

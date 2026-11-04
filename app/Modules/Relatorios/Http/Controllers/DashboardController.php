@@ -5,6 +5,7 @@ namespace App\Modules\Relatorios\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Relatorios\Services\Dashboard\DashboardFinanceiroService;
 use App\Modules\Relatorios\Services\Dashboard\DashboardOperacionalService;
+use App\Modules\Relatorios\Services\Dashboard\DashboardPendenciasService;
 use App\Modules\Relatorios\Services\Dashboard\DashboardPeriod;
 use App\Modules\Relatorios\Services\Dashboard\DashboardResumoService;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ class DashboardController extends Controller
         private readonly DashboardResumoService $resumoService,
         private readonly DashboardFinanceiroService $financeiroService,
         private readonly DashboardOperacionalService $operacionalService,
+        private readonly DashboardPendenciasService $pendenciasService,
     ) {}
 
     #[OA\Get(
@@ -74,6 +76,20 @@ class DashboardController extends Controller
         return response()->json(
             $this->operacionalService->build($this->period($request))
         );
+    }
+
+    #[OA\Get(
+        path: '/api/dashboard/pendencias',
+        summary: 'Pendências acionáveis do dashboard',
+        security: [['sanctum' => []]],
+        tags: ['Relatorios'],
+        responses: [
+            new OA\Response(response: 200, description: 'Contagens com links para ação'),
+        ]
+    )]
+    public function pendencias()
+    {
+        return response()->json($this->pendenciasService->build());
     }
 
     private function period(Request $request): DashboardPeriod
