@@ -30,7 +30,9 @@ class CursoResource extends JsonResource
             'nome' => $this->nome,
             'descricao' => $this->descricao,
             'contrato_id' => $this->contrato_id,
+            'id_template_certificado' => $this->id_template_certificado,
             'contrato' => new ContratoResource($this->whenLoaded('contrato')),
+            'template_certificado' => new TemplateCertificadoResource($this->whenLoaded('templateCertificado')),
         ];
     }
 }

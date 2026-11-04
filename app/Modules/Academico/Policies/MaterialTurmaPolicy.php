@@ -11,6 +11,21 @@ class MaterialTurmaPolicy
 {
     use VerificaVinculos;
 
+    public function viewAnyDoAluno(User $user, int $alunoId): Response
+    {
+        return match ($user->role) {
+            'aluno' => $this->permitirSe(
+                $this->ehOProprioAluno($user, $alunoId),
+                'Acesso restrito: você só pode ver os seus materiais.'
+            ),
+            'responsavel' => $this->permitirSe(
+                $this->ehResponsavelPeloAluno($user, $alunoId),
+                'Acesso restrito: você não é o responsável por este aluno.'
+            ),
+            default => Response::allow(),
+        };
+    }
+
     public function delete(User $user, MaterialTurma $material): Response
     {
         if ($user->role !== 'professor') {

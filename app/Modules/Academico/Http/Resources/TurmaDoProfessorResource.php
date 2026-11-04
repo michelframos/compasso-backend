@@ -2,6 +2,7 @@
 
 namespace App\Modules\Academico\Http\Resources;
 
+use App\Modules\Academico\Support\FrequenciaMinima;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use OpenApi\Attributes as OA;
@@ -19,6 +20,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'observacoes', type: 'string', nullable: true),
         new OA\Property(property: 'status', type: 'string', example: 'em_andamento'),
         new OA\Property(property: 'maximo_alunos', type: 'integer', example: 10),
+        new OA\Property(property: 'frequencia_minima', type: 'number', format: 'float', example: 75),
         new OA\Property(property: 'data_inicio', type: 'string', format: 'date', nullable: true),
         new OA\Property(property: 'data_fim', type: 'string', format: 'date', nullable: true),
         new OA\Property(property: 'alunos_ativos_count', type: 'integer', example: 6),
@@ -41,6 +43,7 @@ class TurmaDoProfessorResource extends JsonResource
             'observacoes' => $this->observacoes,
             'status' => $this->status,
             'maximo_alunos' => $this->maximo_alunos,
+            'frequencia_minima' => FrequenciaMinima::resolver($this->resource),
             'data_inicio' => $this->data_inicio,
             'data_fim' => $this->data_fim,
             'alunos_ativos_count' => $this->whenHas('alunos_ativos_count'),

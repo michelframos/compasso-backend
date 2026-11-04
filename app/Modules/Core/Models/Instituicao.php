@@ -51,6 +51,10 @@ class Instituicao extends Model
         'modulos_desativados',
         'permissoes_professor_aulas',
         'limite_avisos_professor_dia',
+        'permitir_aluno_editar_medidas',
+        'limite_reposicoes_periodo',
+        'prazo_reposicao_dias',
+        'frequencia_minima',
     ];
 
     protected $hidden = [
@@ -68,6 +72,10 @@ class Instituicao extends Model
             'modulos_desativados' => 'array',
             'permissoes_professor_aulas' => 'array',
             'limite_avisos_professor_dia' => 'integer',
+            'permitir_aluno_editar_medidas' => 'boolean',
+            'limite_reposicoes_periodo' => 'integer',
+            'prazo_reposicao_dias' => 'integer',
+            'frequencia_minima' => 'decimal:2',
         ];
     }
 

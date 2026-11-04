@@ -11,6 +11,29 @@ class ContaPolicy
 {
     use VerificaVinculos;
 
+    public function viewAnyDoAluno(User $user, int $alunoId): Response
+    {
+        return match ($user->role) {
+            'aluno' => $this->permitirSe(
+                $this->ehOProprioAluno($user, $alunoId),
+                'Acesso restrito: você só pode ver as suas contas.'
+            ),
+            'responsavel' => $this->permitirSe(
+                $this->ehResponsavelPeloAluno($user, $alunoId),
+                'Acesso restrito: você não é o responsável por este aluno.'
+            ),
+            default => Response::allow(),
+        };
+    }
+
+    public function viewConsolidado(User $user): Response
+    {
+        return $this->permitirSe(
+            $user->role === 'responsavel' && $user->responsavel !== null,
+            'Acesso restrito: a visão consolidada é do responsável.'
+        );
+    }
+
     /** Também autoriza a listagem e o pagamento (individual ou em lote) da conta. */
     public function view(User $user, Conta $conta): Response
     {

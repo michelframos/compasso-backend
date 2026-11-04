@@ -43,7 +43,7 @@ class MeController extends Controller
     #[OA\Put(
         path: '/api/me/perfil',
         summary: 'Atualizar os dados pessoais do usuário autenticado',
-        description: 'Disponível para todos os papéis. E-mail, CPF e papel não são alterados por aqui.',
+        description: 'Disponível para todos os papéis. E-mail, CPF e papel não são alterados por aqui. Aluno e responsável também não alteram nome nem data de nascimento.',
         security: [['sanctum' => []]],
         tags: ['Core'],
         requestBody: new OA\RequestBody(

@@ -9,6 +9,7 @@ use App\Modules\Academico\Http\Requests\Matricula\UpdateMatriculaRequest;
 use App\Modules\Academico\Http\Requests\Matricula\GerarMensalidadesRequest;
 use App\Modules\Academico\Http\Resources\MatriculaResource;
 use App\Modules\Academico\Queries\ListMatriculasQuery;
+use App\Modules\Academico\UseCases\Matricula\CreateMatriculaUseCase;
 use App\Modules\Academico\UseCases\Matricula\GerarMensalidadesDaMatriculaUseCase;
 use App\Modules\Core\Http\Concerns\ResolvesSorting;
 use Illuminate\Support\Facades\Gate;
@@ -21,6 +22,7 @@ class MatriculaController extends Controller
 
     public function __construct(
         private readonly ListMatriculasQuery $listMatriculas,
+        private readonly CreateMatriculaUseCase $createMatricula,
         private readonly GerarMensalidadesDaMatriculaUseCase $gerarMensalidades,
     ) {
     }
@@ -115,8 +117,9 @@ class MatriculaController extends Controller
     )]
     public function store(StoreMatriculaRequest $request)
     {
-        $matricula = Matricula::create($request->validated());
-        return new MatriculaResource($matricula->load(['aluno.usuario', 'turma.curso', 'turma.nivel', 'curso', 'nivel', 'professor.usuario']));
+        $matricula = $this->createMatricula->execute($request->validated());
+
+        return (new MatriculaResource($matricula))->response()->setStatusCode(201);
     }
 
     #[OA\Get(

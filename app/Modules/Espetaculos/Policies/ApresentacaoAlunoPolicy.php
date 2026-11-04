@@ -13,7 +13,7 @@ class ApresentacaoAlunoPolicy
 
     public function view(User $user, ApresentacaoAluno $participacao): Response
     {
-        if ($user->role !== 'professor') {
+        if (! in_array($user->role, ['professor', 'aluno', 'responsavel'], true)) {
             return Response::allow();
         }
 

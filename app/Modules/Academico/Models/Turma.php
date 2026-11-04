@@ -20,6 +20,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: "id_nivel", type: "integer", description: "ID do nivel", example: 1),
         new OA\Property(property: "id_professor", type: "integer", description: "ID do professor", example: 1),
         new OA\Property(property: "maximo_alunos", type: "integer", example: 15),
+        new OA\Property(property: "frequencia_minima", type: "number", format: "float", nullable: true, example: 80.0, description: "Override da frequência mínima; null herda o padrão da empresa"),
         new OA\Property(property: "descricao", type: "string", nullable: true),
         new OA\Property(property: "observacoes", type: "string", nullable: true),
         new OA\Property(property: "status", type: "string", example: "em_andamento"),
@@ -43,6 +44,7 @@ class Turma extends Model
         'id_nivel',
         'id_professor',
         'maximo_alunos',
+        'frequencia_minima',
         'descricao',
         'observacoes',
         'status',
@@ -59,6 +61,7 @@ class Turma extends Model
 
     protected $casts = [
         'status' => \App\Enums\TurmaStatus::class,
+        'frequencia_minima' => 'decimal:2',
     ];
 
     public function curso()

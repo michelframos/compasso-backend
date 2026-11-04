@@ -23,12 +23,17 @@ class Curso extends Model
     use HasFactory, PertenceAInstituicao, SoftDeletes;
 
     protected $table = 'cursos';
-    protected $fillable = ['id_instituicao', 'nome', 'descricao', 'contrato_id'];
+    protected $fillable = ['id_instituicao', 'nome', 'descricao', 'contrato_id', 'id_template_certificado'];
     public $timestamps = false;
     protected $dates = ['deleted_at'];
 
     public function contrato()
     {
         return $this->belongsTo(\App\Models\Contrato::class, 'contrato_id');
+    }
+
+    public function templateCertificado()
+    {
+        return $this->belongsTo(TemplateCertificado::class, 'id_template_certificado');
     }
 }

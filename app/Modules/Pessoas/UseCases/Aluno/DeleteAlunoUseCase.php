@@ -31,6 +31,7 @@ class DeleteAlunoUseCase
             $user = $aluno->usuario;
             $aluno->delete();
             if ($user) {
+                $user->tokens()->delete();
                 $this->users->delete($user);
             }
         });

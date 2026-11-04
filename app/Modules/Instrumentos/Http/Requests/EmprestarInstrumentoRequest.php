@@ -17,6 +17,7 @@ class EmprestarInstrumentoRequest extends FormRequest
         return [
             'id_aluno' => ['required', InstituicaoContext::existsRule('alunos')],
             'data_emprestimo' => 'required|date',
+            'data_prevista_devolucao' => 'nullable|date|after_or_equal:data_emprestimo',
             'contrato_id' => ['nullable', InstituicaoContext::existsRule('contratos')],
             'contrato_gerado' => 'nullable|string',
             'gerar_conta' => 'nullable|boolean',

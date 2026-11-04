@@ -2,6 +2,8 @@
 
 namespace App\Modules\Espetaculos\Providers;
 
+use App\Modules\Core\Contracts\ProximasApresentacoesAlunoPort;
+use App\Modules\Espetaculos\Adapters\ProximasApresentacoesAlunoAdapter;
 use App\Modules\Espetaculos\Models\Apresentacao;
 use App\Modules\Espetaculos\Models\ApresentacaoAluno;
 use App\Modules\Espetaculos\Models\Ensaio;
@@ -18,7 +20,7 @@ class EspetaculosServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        // Figurino → FinanceiroServiceProvider (CriarCobrancasFigurinoPort)
+        $this->app->bind(ProximasApresentacoesAlunoPort::class, ProximasApresentacoesAlunoAdapter::class);
     }
 
     public function boot(): void

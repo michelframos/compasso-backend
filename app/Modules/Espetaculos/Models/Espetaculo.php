@@ -28,10 +28,10 @@ class Espetaculo extends Model
         return $this->belongsTo(\App\Models\Contrato::class, 'contrato_id');
     }
 
-    /** Professor vê os espetáculos com ao menos uma apresentação visível para ele. */
+    /** Professor, aluno e responsável só veem espetáculos com alguma apresentação visível para eles. */
     public function scopeVisivelPara(Builder $query, User $user): Builder
     {
-        if ($user->role !== 'professor') {
+        if (! in_array($user->role, ['professor', 'aluno', 'responsavel'], true)) {
             return $query;
         }
 

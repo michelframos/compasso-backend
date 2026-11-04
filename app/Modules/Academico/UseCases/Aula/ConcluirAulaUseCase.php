@@ -5,6 +5,7 @@ namespace App\Modules\Academico\UseCases\Aula;
 use App\Enums\TurmaStatus;
 use App\Modules\Academico\Models\AulaPresenca;
 use App\Modules\Academico\Models\AulaTurma;
+use App\Modules\Academico\Models\SolicitacaoReposicao;
 use App\Modules\Academico\Services\AulaSnapshotService;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -75,6 +76,12 @@ class ConcluirAulaUseCase
             $alunos[] = $aula->id_aluno_especifico;
         }
 
-        return array_map('intval', $alunos);
+        $reposicoes = SolicitacaoReposicao::query()
+            ->where('id_aula_turma_destino', $aula->id)
+            ->where('status', SolicitacaoReposicao::STATUS_APROVADA)
+            ->pluck('id_aluno')
+            ->all();
+
+        return array_map('intval', [...$alunos, ...$reposicoes]);
     }
 }

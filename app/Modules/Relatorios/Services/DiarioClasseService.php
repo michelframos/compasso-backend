@@ -4,6 +4,7 @@ namespace App\Modules\Relatorios\Services;
 
 use App\Models\AulaTurma;
 use App\Modules\Academico\Models\Turma;
+use App\Modules\Academico\Support\FrequenciaMinima;
 
 /**
  * Diário de classe de uma turma: alunos, aulas concluídas no período, presenças e conteúdos.
@@ -42,6 +43,7 @@ class DiarioClasseService
             'nivel' => $turma->nivel ? $turma->nivel->nome : 'N/A',
             'professor' => $turma->professor?->usuario ? $turma->professor->usuario->nome : 'Não atribuído',
             'status' => $turma->status,
+            'frequencia_minima' => FrequenciaMinima::resolver($turma),
             'data_inicio' => $dataInicio,
             'data_fim' => $dataFim,
             'horarios' => $turma->horarios->map(fn ($h) => [

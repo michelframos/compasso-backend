@@ -38,6 +38,8 @@ class UpdateAlunoUseCase
 
             if (! empty($data['password'])) {
                 $userData['password'] = $data['password'];
+                $userData['deve_trocar_senha'] = true;
+                $aluno->usuario?->tokens()->delete();
             }
 
             $this->users->update($aluno->usuario, $userData);

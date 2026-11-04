@@ -107,6 +107,69 @@ class DashboardTest extends TestCase
         $this->assertSame('2', $leadsStat['value']);
     }
 
+    public function test_pendencias_retorna_contagens_acionaveis(): void
+    {
+        $this->makeAula(now()->subDay()->toDateString(), '09:00', '10:00', 'agendada');
+
+        $aluno = $this->makeAluno('Devedor Dashboard');
+        Conta::create([
+            'id_categoria' => $this->categoria->id,
+            'descricao' => 'Mensalidade atrasada',
+            'valor' => 200,
+            'data_vencimento' => now()->subDays(3)->toDateString(),
+            'status' => 'pendente',
+            'tipo' => 'receita',
+            'id_aluno' => $aluno->id,
+        ]);
+
+        $aulaBase = $this->makeAula(now()->addDay()->toDateString(), '14:00', '15:00', 'agendada');
+        \App\Modules\Academico\Models\SolicitacaoAula::create([
+            'id_instituicao' => $this->instituicao->id,
+            'id_aula_turma' => $aulaBase->id,
+            'id_professor' => $this->professor->id,
+            'tipo' => \App\Modules\Academico\Models\SolicitacaoAula::TIPO_CANCELAMENTO,
+            'motivo' => 'Teste dashboard',
+            'status' => \App\Modules\Academico\Models\SolicitacaoAula::STATUS_PENDENTE,
+        ]);
+
+        $response = $this->asAdmin()->getJson('/api/dashboard/pendencias');
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'items' => [
+                    ['key', 'label', 'count', 'href'],
+                ],
+            ]);
+
+        $items = collect($response->json('items'))->keyBy('key');
+
+        $this->assertTrue($items->has('certificados_elegiveis'));
+        $this->assertTrue($items->has('solicitacoes_aula'));
+        $this->assertTrue($items->has('reposicoes'));
+        $this->assertTrue($items->has('chamadas_pendentes'));
+        $this->assertGreaterThanOrEqual(1, $items['chamadas_pendentes']['count']);
+        $this->assertSame(1, $items['solicitacoes_aula']['count']);
+
+        if ($items->has('contas_vencidas')) {
+            $this->assertGreaterThanOrEqual(1, $items['contas_vencidas']['count']);
+            $this->assertSame('danger', $items['contas_vencidas']['variant']);
+        }
+    }
+
+    public function test_resumo_omits_fake_trend_on_inadimplencia_and_marks_modulos(): void
+    {
+        $response = $this->asAdmin()->getJson('/api/dashboard/resumo')->assertOk();
+        $stats = collect($response->json('stats'));
+
+        $inadimplencia = $stats->firstWhere('title', 'Inadimplência');
+        $this->assertArrayNotHasKey('trend', $inadimplencia);
+        $this->assertSame('financeiro', $inadimplencia['modulo']);
+
+        $leads = $stats->firstWhere('title', 'Leads Ativos');
+        $this->assertArrayNotHasKey('trend', $leads);
+        $this->assertSame('leads', $leads['modulo']);
+    }
+
     public function test_financeiro_uses_saldo_and_includes_pago_parcialmente(): void
     {
         $aluno = $this->makeAluno('Maria Silva');

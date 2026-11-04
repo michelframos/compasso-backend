@@ -35,6 +35,7 @@ Route::middleware(['auth:sanctum', 'ensure.instituicao.membership'])->group(func
         Route::get('dashboard/resumo', [DashboardController::class, 'resumo']);
         Route::get('dashboard/financeiro', [DashboardController::class, 'financeiro']);
         Route::get('dashboard/operacional', [DashboardController::class, 'operacional']);
+        Route::get('dashboard/pendencias', [DashboardController::class, 'pendencias']);
 
         Route::middleware('ensure.plano.modulo:relatorios')->prefix('relatorios')->group(function () {
             Route::prefix('financeiro')->group(function () {

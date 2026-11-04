@@ -11,6 +11,7 @@ use App\Modules\Pessoas\Http\Resources\AlunoResource;
 use App\Modules\Pessoas\Models\Aluno;
 use App\Modules\Pessoas\UseCases\Aluno\CreateAlunoUseCase;
 use App\Modules\Pessoas\UseCases\Aluno\DeleteAlunoUseCase;
+use App\Modules\Pessoas\UseCases\Aluno\EnviarAcessoAlunoUseCase;
 use App\Modules\Pessoas\UseCases\Aluno\UpdateAlunoUseCase;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
@@ -25,6 +26,7 @@ class AlunoController extends Controller
         private readonly CreateAlunoUseCase $createAluno,
         private readonly UpdateAlunoUseCase $updateAluno,
         private readonly DeleteAlunoUseCase $deleteAluno,
+        private readonly EnviarAcessoAlunoUseCase $enviarAcessoAluno,
     ) {}
 
     #[OA\Get(path: '/api/alunos/list', summary: 'Listar todos os alunos (simplificado)', security: [['sanctum' => []]], tags: ['Pessoas'],
@@ -168,5 +170,29 @@ class AlunoController extends Controller
         $alunoContrato->delete();
 
         return response()->json(null, 204);
+    }
+
+    #[OA\Post(
+        path: '/api/alunos/{id}/enviar-acesso',
+        summary: 'Enviar ao aluno o código para definir/redefinir a senha de acesso',
+        security: [['sanctum' => []]],
+        tags: ['Pessoas'],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [
+            new OA\Response(response: 200, description: 'Código de acesso enviado por e-mail'),
+            new OA\Response(response: 403, description: 'Perfil sem permissão'),
+            new OA\Response(response: 404, description: 'Aluno não encontrado'),
+            new OA\Response(response: 422, description: 'Aluno sem e-mail cadastrado'),
+        ]
+    )]
+    public function enviarAcesso(Aluno $aluno)
+    {
+        try {
+            $email = $this->enviarAcessoAluno->execute($aluno);
+        } catch (HttpException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
+        }
+
+        return response()->json(['message' => "Código de acesso enviado para {$email}."]);
     }
 }

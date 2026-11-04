@@ -8,6 +8,7 @@ use App\Modules\Core\Contracts\PlanoEntitlementResolverInterface;
 use App\Modules\Pessoas\Models\Aluno;
 use App\Modules\Pessoas\UseCases\Responsavel\ResolveOrCreateResponsavelUseCase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class CreateAlunoUseCase
@@ -38,7 +39,8 @@ class CreateAlunoUseCase
                 'bairro' => $data['bairro'] ?? null,
                 'id_estado' => $data['id_estado'] ?? null,
                 'id_cidade' => $data['id_cidade'] ?? null,
-                'password' => $data['password'] ?? 'camerata123',
+                'password' => filled($data['password'] ?? null) ? $data['password'] : Str::password(16),
+                'deve_trocar_senha' => true,
             ]);
 
             $aluno = Aluno::create([

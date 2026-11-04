@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Instrumentos\Http\Controllers\AlunoInstrumentoController;
 use App\Modules\Instrumentos\Http\Controllers\InstrumentoController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,4 +17,10 @@ Route::middleware(['auth:sanctum', 'ensure.instituicao.membership', 'ensure.plan
         Route::post('instrumentos/{instrumento}/devolver', [InstrumentoController::class, 'devolver']);
         Route::get('instrumentos/{instrumento}/historico', [InstrumentoController::class, 'historico']);
     });
+
+    Route::middleware(['ensure.senha.atualizada', 'role:aluno,responsavel', 'ensure.perfil.aluno'])
+        ->prefix('aluno/me')
+        ->group(function () {
+            Route::get('instrumentos', [AlunoInstrumentoController::class, 'index']);
+        });
 });

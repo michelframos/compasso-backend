@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Core\Support\InstituicaoContext;
 use App\Modules\Pessoas\Models\Aluno;
 use App\Modules\Pessoas\Models\Responsavel;
+use App\Modules\Pessoas\Models\ResponsavelAluno;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
@@ -176,8 +177,16 @@ class ResponsavelAlunoController extends Controller
     )]
     public function destroy(Aluno $aluno, Responsavel $responsavel)
     {
-        // Soft Delete na tabela pivot
-        $aluno->responsaveis()->updateExistingPivot($responsavel->id, ['deleted_at' => now()]);
+        $vinculo = ResponsavelAluno::query()
+            ->where('id_aluno', $aluno->id)
+            ->where('id_responsavel', $responsavel->id)
+            ->first();
+
+        if ($vinculo === null) {
+            return response()->json(['message' => 'Aluno ou Responsável não encontrado'], 404);
+        }
+
+        $vinculo->delete();
 
         return response()->json(['message' => 'Responsável desvinculado com sucesso']);
     }

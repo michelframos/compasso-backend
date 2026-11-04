@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Espetaculos\Http\Controllers\AlunoApresentacaoController;
 use App\Modules\Espetaculos\Http\Controllers\ApresentacaoAlunoController;
 use App\Modules\Espetaculos\Http\Controllers\ApresentacaoController;
 use App\Modules\Espetaculos\Http\Controllers\ApresentacaoProfessorController;
@@ -38,6 +39,12 @@ Route::middleware(['auth:sanctum', 'ensure.instituicao.membership', 'ensure.plan
             ->parameters(['ensaios' => 'ensaio'])
             ->only(['index', 'store', 'update', 'destroy']);
     });
+
+    Route::middleware(['ensure.senha.atualizada', 'role:aluno,responsavel', 'ensure.perfil.aluno'])
+        ->prefix('aluno/me')
+        ->group(function () {
+            Route::get('apresentacoes', [AlunoApresentacaoController::class, 'index']);
+        });
 
     Route::middleware(['ensure.senha.atualizada', 'role:professor', 'ensure.perfil.professor'])
         ->prefix('professor/me')

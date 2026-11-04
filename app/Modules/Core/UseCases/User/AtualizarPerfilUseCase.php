@@ -19,6 +19,13 @@ class AtualizarPerfilUseCase
 
     public function execute(User $user, array $dados): User
     {
-        return $this->users->update($user, Arr::only($dados, self::CAMPOS_EDITAVEIS));
+        $dados = Arr::only($dados, self::CAMPOS_EDITAVEIS);
+
+        // Nome e data de nascimento do aluno e do responsável ficam com a secretaria.
+        if (in_array($user->role, ['aluno', 'responsavel'], true)) {
+            unset($dados['nome'], $dados['data_aniversario']);
+        }
+
+        return $this->users->update($user, $dados);
     }
 }

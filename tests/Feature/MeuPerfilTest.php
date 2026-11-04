@@ -67,11 +67,23 @@ class MeuPerfilTest extends TestCase
                 ->assertJsonPath('data.id', $user->id)
                 ->assertJsonPath('data.email', $user->email);
 
-            $this->putJson('/api/me/perfil', $this->dadosPerfil(['nome' => "Perfil {$role}"]))
-                ->assertOk()
-                ->assertJsonPath('data.nome', "Perfil {$role}")
-                ->assertJsonPath('data.data_aniversario', '1990-05-20')
-                ->assertJsonPath('data.id_cidade', $this->cidade);
+            $resposta = $this->putJson('/api/me/perfil', $this->dadosPerfil([
+                'nome' => "Perfil {$role}",
+                'telefone' => '(19) 3333-4444',
+            ]))->assertOk();
+
+            if (in_array($role, ['aluno', 'responsavel'], true)) {
+                $resposta
+                    ->assertJsonPath('data.nome', $user->nome)
+                    ->assertJsonPath('data.data_aniversario', substr((string) $user->data_aniversario, 0, 10))
+                    ->assertJsonPath('data.telefone', '(19) 3333-4444');
+            } else {
+                $resposta
+                    ->assertJsonPath('data.nome', "Perfil {$role}")
+                    ->assertJsonPath('data.data_aniversario', '1990-05-20');
+            }
+
+            $resposta->assertJsonPath('data.id_cidade', $this->cidade);
         }
     }
 

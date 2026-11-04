@@ -5,6 +5,7 @@ namespace App\Modules\Pessoas\Policies;
 use App\Modules\Core\Models\User;
 use App\Modules\Core\Policies\Concerns\VerificaVinculos;
 use App\Modules\Pessoas\Models\MedidaAluno;
+use App\Modules\Pessoas\Support\EdicaoMedidasDoAluno;
 use Illuminate\Auth\Access\Response;
 
 class MedidaAlunoPolicy
@@ -39,5 +40,25 @@ class MedidaAlunoPolicy
             ),
             default => Response::allow(),
         };
+    }
+
+    public function update(User $user, MedidaAluno $medida): Response
+    {
+        if (! in_array($user->role, ['aluno', 'responsavel'], true)) {
+            return Response::allow();
+        }
+
+        $vinculo = $user->role === 'aluno'
+            ? $this->ehOProprioAluno($user, $medida->id_aluno)
+            : $this->ehResponsavelPeloAluno($user, $medida->id_aluno);
+
+        if (! $vinculo) {
+            return Response::deny('Acesso restrito: esta medida não é sua.');
+        }
+
+        return $this->permitirSe(
+            EdicaoMedidasDoAluno::permitida(),
+            'A escola não permite que o aluno altere as medidas.'
+        );
     }
 }

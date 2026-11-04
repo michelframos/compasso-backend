@@ -3,11 +3,13 @@
 namespace App\Modules\Core\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Core\Http\Requests\Auth\AlunoLoginRequest;
 use App\Modules\Core\Http\Requests\Auth\LoginRequest;
 use App\Modules\Core\Http\Requests\Auth\PlatformLoginRequest;
 use App\Modules\Core\Http\Requests\Auth\RegisterRequest;
 use App\Modules\Core\Http\Resources\InstituicaoResource;
 use App\Modules\Core\Http\Resources\UserResource;
+use App\Modules\Core\UseCases\Auth\LoginAlunoUseCase;
 use App\Modules\Core\UseCases\Auth\LoginPlatformUserUseCase;
 use App\Modules\Core\UseCases\Auth\LoginUserUseCase;
 use App\Modules\Core\UseCases\Auth\RegisterUserUseCase;
@@ -20,6 +22,7 @@ class AuthController extends Controller
         private readonly RegisterUserUseCase $registerUser,
         private readonly LoginUserUseCase $loginUser,
         private readonly LoginPlatformUserUseCase $loginPlatformUser,
+        private readonly LoginAlunoUseCase $loginAluno,
     ) {}
 
     #[OA\Post(
@@ -140,7 +143,63 @@ class AuthController extends Controller
     }
 
     #[OA\Post(
+        path: '/api/aluno/login',
+        summary: 'Login da área do aluno/responsável',
+        tags: ['Core'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/AlunoLoginRequest')
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Login realizado com sucesso'),
+            new OA\Response(response: 401, description: 'Credenciais inválidas'),
+            new OA\Response(response: 403, description: 'Sem acesso à área do aluno ou assinatura bloqueada'),
+            new OA\Response(response: 409, description: 'Seleção de instituição necessária'),
+            new OA\Response(response: 422, description: 'Erro de validação'),
+            new OA\Response(response: 429, description: 'Muitas tentativas; aguarde para tentar novamente'),
+        ]
+    )]
+    public function alunoLogin(AlunoLoginRequest $request)
+    {
+        $credentials = $request->validated();
+        $result = $this->loginAluno->execute(
+            $credentials['email'],
+            $credentials['password'],
+            $credentials['tenant_slug'] ?? null,
+        );
+
+        if ($result === null) {
+            return response()->json(['message' => 'Credenciais inválidas'], 401);
+        }
+
+        if (isset($result['forbidden'])) {
+            return response()->json([
+                'message' => 'Este acesso é exclusivo para alunos e responsáveis.',
+            ], 403);
+        }
+
+        if (isset($result['subscription_blocked'])) {
+            return response()->json($result['details'], 403);
+        }
+
+        if (isset($result['needs_tenant_selection'])) {
+            return response()->json([
+                'message' => 'Sua conta está vinculada a mais de uma escola. Selecione qual deseja acessar.',
+                'code' => 'needs_tenant_selection',
+                'tenants' => InstituicaoResource::collection($result['tenants']),
+            ], 409);
+        }
+
+        return (new UserResource($result['user']))->additional([
+            'token' => $result['token'],
+            'tenant' => new InstituicaoResource($result['tenant']),
+            'tenants' => InstituicaoResource::collection($result['tenants']),
+        ]);
+    }
+
+    #[OA\Post(
         path: '/api/logout',
+
         summary: 'Logout de usuário',
         security: [['sanctum' => []]],
         tags: ['Core'],

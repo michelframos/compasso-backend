@@ -24,7 +24,9 @@ $env:DEMO_SEED_FORCE='1'; php artisan db:seed --class=DemoTenantSeeder
 
 ## Credenciais
 
-Senha de todos: **`password`**
+### Escolas demo
+
+Senha: **`password`**
 
 | Email | Tenant (`X-Tenant-Slug` / login) | Uso |
 |-------|----------------------------------|-----|
@@ -35,6 +37,21 @@ Senha de todos: **`password`**
 | `admin@enterprise.demo` | `escola-enterprise` | Enterprise — tudo ativo |
 
 Também existem usuários `secretaria@…` para cada escola (mesma senha).
+
+### Escola Michel (`EscolaMichelSeeder`)
+
+Senha: **`Redo@2018`**  
+CNPJ de login: **`26.366.000/0001-01`** (slug: `escola-michel`)
+
+| Email | Role |
+|-------|------|
+| `michelframos@hotmail.com` | admin |
+| `professor1@email.com` | professor (Violão Intermediário) |
+| `professor2@email.com` | professor (Ballet Iniciante) |
+| `aluno1@email.com` … `aluno3@email.com` | alunos na turma de Violão |
+| `aluno4@email.com` | aluno na turma de Ballet |
+
+Cursos: **Violão** e **Ballet**, cada um com níveis Infantil (4–11), Iniciante (12–15), Básico (16–18), Intermediário (19–21) e Avançado (22–30).
 
 ## O que cada escola recebe
 

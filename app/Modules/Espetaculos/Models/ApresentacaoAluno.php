@@ -4,6 +4,7 @@ namespace App\Modules\Espetaculos\Models;
 
 use App\Modules\Core\Models\Concerns\PertenceAInstituicao;
 use App\Modules\Core\Models\User;
+use App\Modules\Pessoas\Support\AlunosVinculados;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ class ApresentacaoAluno extends Model
 {
     use HasFactory, PertenceAInstituicao, SoftDeletes;
     protected $table = 'apresentacoes_alunos';
-    protected $fillable = ['id_instituicao', 'id_apresentacao', 'id_aluno', 'tamanho_figurino', 'valor_figurino', 'pago_figurino', 'presenca_ensaio_geral', 'presenca_espetaculo', 'recebeu_figurino', 'fatura_gerada'];
+    protected $fillable = ['id_instituicao', 'id_apresentacao', 'id_aluno', 'papel', 'tamanho_figurino', 'valor_figurino', 'pago_figurino', 'presenca_ensaio_geral', 'presenca_espetaculo', 'recebeu_figurino', 'fatura_gerada'];
 
     public function apresentacao()
     {
@@ -26,10 +27,10 @@ class ApresentacaoAluno extends Model
 
     public function scopeVisivelPara(Builder $query, User $user): Builder
     {
-        if ($user->role !== 'professor') {
-            return $query;
-        }
-
-        return $query->whereHas('apresentacao', fn (Builder $a) => $a->visivelPara($user));
+        return match ($user->role) {
+            'professor' => $query->whereHas('apresentacao', fn (Builder $a) => $a->visivelPara($user)),
+            'aluno', 'responsavel' => $query->whereIn('id_aluno', AlunosVinculados::ids($user)),
+            default => $query,
+        };
     }
 }

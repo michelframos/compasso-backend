@@ -5,6 +5,7 @@ namespace App\Modules\Espetaculos\Models;
 use App\Modules\Academico\Models\Matricula;
 use App\Modules\Core\Models\Concerns\PertenceAInstituicao;
 use App\Modules\Core\Models\User;
+use App\Modules\Pessoas\Support\AlunosVinculados;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -48,16 +49,18 @@ class Apresentacao extends Model
         return $this->hasMany(Ensaio::class, 'id_apresentacao');
     }
 
-    /** Professor vê as apresentações das suas turmas e aquelas com participação de alunos seus (matrícula vigente). */
+    /** Professor vê as suas; aluno e responsável só as da própria turma ou em que estão escalados. */
     public function scopeVisivelPara(Builder $query, User $user): Builder
     {
-        if ($user->role !== 'professor') {
-            return $query;
-        }
-
-        return $query->where(fn (Builder $q) => $q
-            ->whereHas('turma', fn (Builder $t) => $t->where('id_professor', $user->professor?->id ?? 0))
-            ->orWhereHas('alunos', fn (Builder $a) => $a->whereIn('id_aluno', self::alunosDoProfessor($user))));
+        return match ($user->role) {
+            'professor' => $query->where(fn (Builder $q) => $q
+                ->whereHas('turma', fn (Builder $t) => $t->where('id_professor', $user->professor?->id ?? 0))
+                ->orWhereHas('alunos', fn (Builder $a) => $a->whereIn('id_aluno', self::alunosDoProfessor($user)))),
+            'aluno', 'responsavel' => $query->where(fn (Builder $q) => $q
+                ->whereHas('alunos', fn (Builder $a) => $a->whereIn('id_aluno', AlunosVinculados::ids($user)))
+                ->orWhereHas('turma.matriculas', fn (Builder $m) => $m->whereIn('id_aluno', AlunosVinculados::ids($user)))),
+            default => $query,
+        };
     }
 
     public static function alunosDoProfessor(User $user): Builder

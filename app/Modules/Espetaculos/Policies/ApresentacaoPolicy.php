@@ -11,15 +11,32 @@ class ApresentacaoPolicy
 {
     use VerificaVinculos;
 
+    public function viewAnyDoAluno(User $user, int $alunoId): Response
+    {
+        return match ($user->role) {
+            'aluno' => $this->permitirSe(
+                $this->ehOProprioAluno($user, $alunoId),
+                'Acesso restrito: você só pode ver as suas apresentações.'
+            ),
+            'responsavel' => $this->permitirSe(
+                $this->ehResponsavelPeloAluno($user, $alunoId),
+                'Acesso restrito: você não é o responsável por este aluno.'
+            ),
+            default => Response::deny('Acesso restrito: apenas o aluno ou o responsável consulta as apresentações.'),
+        };
+    }
+
     public function view(User $user, Apresentacao $apresentacao): Response
     {
-        if ($user->role !== 'professor') {
+        if (! in_array($user->role, ['professor', 'aluno', 'responsavel'], true)) {
             return Response::allow();
         }
 
         return $this->permitirSe(
             self::visivelParaProfessor($user, $apresentacao),
-            'Acesso restrito: esta apresentação não é de uma turma sua nem tem alunos seus.'
+            $user->role === 'professor'
+                ? 'Acesso restrito: esta apresentação não é de uma turma sua nem tem alunos seus.'
+                : 'Acesso restrito: esta apresentação não é sua.'
         );
     }
 

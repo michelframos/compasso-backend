@@ -3,6 +3,8 @@
 namespace App\Modules\Relatorios\Services;
 
 use App\Modules\Academico\Models\AulaTurma;
+use App\Modules\Academico\Models\Turma;
+use App\Modules\Academico\Support\FrequenciaMinima;
 use App\Modules\Core\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -64,18 +66,23 @@ class AbsenteismoService
             ];
         })->values();
 
+        $turma = $idTurma ? Turma::query()->find($idTurma) : null;
+        $frequenciaMinima = FrequenciaMinima::resolver($turma);
+
         return [
             'data' => $dados,
             'summary' => [
                 'total_alunos' => $dados->count(),
                 'media_absenteismo' => round($dados->avg('taxa_absenteismo') ?? 0, 2),
                 'alunos_em_risco' => $dados->where('em_risco', true)->count(),
+                'frequencia_minima' => $frequenciaMinima,
             ],
             'filters' => [
                 'data_inicio' => $dataInicio,
                 'data_fim' => $dataFim,
                 'id_turma' => $idTurma,
                 'limite_faltas' => $limiteFaltas,
+                'frequencia_minima' => $frequenciaMinima,
             ],
         ];
     }
