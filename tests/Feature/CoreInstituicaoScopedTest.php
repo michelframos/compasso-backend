@@ -136,6 +136,44 @@ class CoreInstituicaoScopedTest extends TestCase
         $this->assertNotSame('Depois', $default->fresh()->nome_fantasia);
     }
 
+    public function test_configuracao_empresa_valida_frequencia_minima(): void
+    {
+        $instituicao = Instituicao::create([
+            'slug' => 'escola-freq',
+            'nome_fantasia' => 'Escola Freq',
+            'status' => Instituicao::STATUS_ATIVO,
+            'cnpj' => $this->cnpjValido('escola-freq'),
+        ]);
+
+        $admin = $this->criarAdminNaInstituicao($instituicao, 'admin-freq@test.com');
+        $token = $this->autenticarComo($admin, $instituicao);
+
+        $this->withToken($token)
+            ->withHeader('X-Tenant-Slug', 'escola-freq')
+            ->putJson('/api/configuracao-empresa', [
+                'nome_fantasia' => 'Escola Freq',
+                'cnpj' => $this->cnpjValido('escola-freq'),
+                'frequencia_minima' => 101,
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('frequencia_minima');
+
+        $this->withToken($token)
+            ->withHeader('X-Tenant-Slug', 'escola-freq')
+            ->putJson('/api/configuracao-empresa', [
+                'nome_fantasia' => 'Escola Freq',
+                'cnpj' => $this->cnpjValido('escola-freq'),
+                'frequencia_minima' => 85,
+            ])
+            ->assertOk()
+            ->assertJsonPath('frequencia_minima', '85.00');
+
+        $this->assertDatabaseHas('instituicoes', [
+            'id' => $instituicao->id,
+            'frequencia_minima' => 85,
+        ]);
+    }
+
     public function test_criar_usuario_vincula_a_instituicao_ativa(): void
     {
         $instituicao = Instituicao::create([

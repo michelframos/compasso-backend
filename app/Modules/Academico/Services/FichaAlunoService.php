@@ -7,6 +7,8 @@ use App\Modules\Academico\Models\AvaliacaoAluno;
 use App\Modules\Academico\Models\Matricula;
 use App\Modules\Academico\Models\ObservacaoAluno;
 use App\Modules\Academico\Models\SugestaoProgressao;
+use App\Modules\Academico\Models\Turma;
+use App\Modules\Academico\Support\FrequenciaMinima;
 use App\Modules\Core\Contracts\PlanoEntitlementResolverInterface;
 use App\Modules\Core\Models\User;
 use App\Modules\Core\Support\InstituicaoContext;
@@ -107,15 +109,26 @@ class FichaAlunoService
             $grupos->push(null);
         }
 
+        $idsTurmas = $grupos->filter()->unique()->values();
+        $turmasPorId = $idsTurmas->isEmpty()
+            ? collect()
+            : Turma::query()->whereIn('id', $idsTurmas)->get()->keyBy('id');
+
         return [
             ...$this->resumo($presencas),
+            'frequencia_minima' => FrequenciaMinima::resolver(),
             'por_turma' => $grupos
-                ->map(fn (?int $idTurma) => [
-                    'id_turma' => $idTurma,
-                    ...$this->resumo($presencas->filter(fn (AulaPresenca $p) => $p->aula->id_turma === null
-                        ? $idTurma === null
-                        : (int) $p->aula->id_turma === $idTurma)),
-                ])
+                ->map(function (?int $idTurma) use ($presencas, $turmasPorId) {
+                    $turma = $idTurma !== null ? $turmasPorId->get($idTurma) : null;
+
+                    return [
+                        'id_turma' => $idTurma,
+                        'frequencia_minima' => FrequenciaMinima::resolver($turma),
+                        ...$this->resumo($presencas->filter(fn (AulaPresenca $p) => $p->aula->id_turma === null
+                            ? $idTurma === null
+                            : (int) $p->aula->id_turma === $idTurma)),
+                    ];
+                })
                 ->values()
                 ->all(),
             'ultimas' => $presencas

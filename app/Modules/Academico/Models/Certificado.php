@@ -14,7 +14,7 @@ class Certificado extends Model
 {
     use PertenceAInstituicao, SoftDeletes;
 
-    /** Frequência mínima (presenças / total) para emitir o certificado. */
+    /** Fallback quando escola/turma não definem frequência mínima. */
     public const FREQUENCIA_MINIMA = 75.0;
 
     public const STATUS_MATRICULA = 'completada';

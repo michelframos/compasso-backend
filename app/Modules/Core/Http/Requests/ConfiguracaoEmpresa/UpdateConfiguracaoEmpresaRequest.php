@@ -49,6 +49,7 @@ class UpdateConfiguracaoEmpresaRequest extends FormRequest
             'permitir_aluno_editar_medidas' => 'sometimes|boolean',
             'limite_reposicoes_periodo' => 'sometimes|nullable|integer|min:0|max:99',
             'prazo_reposicao_dias' => 'sometimes|nullable|integer|min:0|max:365',
+            'frequencia_minima' => 'sometimes|required|numeric|min:0|max:100',
         ];
     }
 }

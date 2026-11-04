@@ -16,6 +16,7 @@ use Illuminate\Validation\Rule;
         new OA\Property(property: "id_nivel", type: "integer", example: 1),
         new OA\Property(property: "id_professor", type: "integer", nullable: true, example: 1),
         new OA\Property(property: "maximo_alunos", type: "integer", example: 20),
+        new OA\Property(property: "frequencia_minima", type: "number", format: "float", nullable: true, example: 80.0),
         new OA\Property(property: "descricao", type: "string", maxLength: 255, nullable: true, example: "Turma de Violão Iniciante"),
         new OA\Property(property: "observacoes", type: "string", nullable: true, example: "Aulas aos sábados"),
         new OA\Property(property: "status", type: "string", enum: ["planejamento", "aberta", "em_andamento", "pausada", "concluida", "cancelada"], example: "em_andamento"),
@@ -49,6 +50,13 @@ class StoreTurmaRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('frequencia_minima') && $this->input('frequencia_minima') === '') {
+            $this->merge(['frequencia_minima' => null]);
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -61,6 +69,7 @@ class StoreTurmaRequest extends FormRequest
             'id_nivel' => ['required', 'integer', InstituicaoContext::existsRule('niveis')],
             'id_professor' => ['nullable', 'integer', InstituicaoContext::existsRule('professores')],
             'maximo_alunos' => ['required', 'integer', 'min:1'],
+            'frequencia_minima' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'descricao' => ['nullable', 'string', 'max:255'],
             'observacoes' => ['nullable', 'string'],
             'status' => ['nullable', Rule::enum(TurmaStatus::class)],

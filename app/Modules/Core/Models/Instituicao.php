@@ -54,6 +54,7 @@ class Instituicao extends Model
         'permitir_aluno_editar_medidas',
         'limite_reposicoes_periodo',
         'prazo_reposicao_dias',
+        'frequencia_minima',
     ];
 
     protected $hidden = [
@@ -74,6 +75,7 @@ class Instituicao extends Model
             'permitir_aluno_editar_medidas' => 'boolean',
             'limite_reposicoes_periodo' => 'integer',
             'prazo_reposicao_dias' => 'integer',
+            'frequencia_minima' => 'decimal:2',
         ];
     }
 

@@ -111,9 +111,13 @@ Route::middleware(['auth:sanctum', 'ensure.instituicao.membership', 'ensure.senh
         Route::apiResource('matriculas', MatriculaController::class)->only(['store', 'update', 'destroy']);
         Route::post('matriculas/{matricula}/gerar-mensalidades', [MatriculaController::class, 'gerarMensalidades']);
         Route::get('certificados', [CertificadoController::class, 'index']);
+        Route::get('certificados/elegiveis', [CertificadoController::class, 'elegiveis']);
+        Route::post('certificados/emitir-lote', [CertificadoController::class, 'emitirLote']);
+        Route::get('certificados/{certificado}/pdf', [CertificadoController::class, 'pdf']);
         Route::post('matriculas/{matricula}/certificados', [CertificadoController::class, 'store']);
         Route::apiResource('templates-certificados', TemplateCertificadoController::class)
             ->parameters(['templates-certificados' => 'templateCertificado']);
+        Route::post('templates-certificados/{templateCertificado}/duplicar', [TemplateCertificadoController::class, 'duplicar']);
         Route::post('templates-certificados/{templateCertificado}/fundo', [TemplateCertificadoController::class, 'uploadFundo']);
         Route::delete('templates-certificados/{templateCertificado}/fundo', [TemplateCertificadoController::class, 'destroyFundo']);
         Route::post('templates-certificados/{templateCertificado}/elementos', [TemplateCertificadoController::class, 'uploadElemento']);

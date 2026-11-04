@@ -208,6 +208,62 @@ class AreaAlunoCertificadosTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_frequencia_minima_da_instituicao_bloqueia_emissao(): void
+    {
+        $this->naInstituicao($this->instituicao, function (): void {
+            $this->instituicao->update(['frequencia_minima' => 80]);
+        });
+
+        $this->comoUsuario($this->secretaria, $this->instituicao)
+            ->postJson('/api/matriculas/'.$this->matriculaAna->id.'/certificados')
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('id_matricula')
+            ->assertJsonPath('errors.id_matricula.0', 'A frequência mínima para o certificado é 80%.');
+    }
+
+    public function test_frequencia_minima_da_turma_prevalece_sobre_a_instituicao(): void
+    {
+        $this->naInstituicao($this->instituicao, function (): void {
+            $this->instituicao->update(['frequencia_minima' => 90]);
+            $this->matriculaAna->turma->update(['frequencia_minima' => 70]);
+        });
+
+        $this->comoUsuario($this->secretaria, $this->instituicao)
+            ->postJson('/api/matriculas/'.$this->matriculaAna->id.'/certificados')
+            ->assertCreated();
+    }
+
+    public function test_turma_sem_override_usa_frequencia_da_instituicao(): void
+    {
+        $this->naInstituicao($this->instituicao, function (): void {
+            $this->instituicao->update(['frequencia_minima' => 70]);
+            $this->matriculaAna->turma->update(['frequencia_minima' => null]);
+        });
+
+        $this->comoUsuario($this->secretaria, $this->instituicao)
+            ->postJson('/api/matriculas/'.$this->matriculaAna->id.'/certificados')
+            ->assertCreated();
+    }
+
+    public function test_turma_rejeita_frequencia_minima_fora_da_faixa(): void
+    {
+        $turma = $this->matriculaAna->turma;
+
+        $this->comoUsuario($this->secretaria, $this->instituicao)
+            ->putJson('/api/turmas/'.$turma->id, [
+                'id_curso' => $turma->id_curso,
+                'id_nivel' => $turma->id_nivel,
+                'id_professor' => $turma->id_professor,
+                'maximo_alunos' => $turma->maximo_alunos,
+                'tipo_agendamento' => $turma->tipo_agendamento,
+                'data_inicio' => $turma->data_inicio,
+                'quantidade_aulas' => $turma->quantidade_aulas,
+                'frequencia_minima' => 120,
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('frequencia_minima');
+    }
+
     private function turma(Curso $curso, Nivel $nivel, Professor $professor, string $descricao): Turma
     {
         return Turma::create([

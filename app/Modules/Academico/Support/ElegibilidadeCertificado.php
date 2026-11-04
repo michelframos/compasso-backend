@@ -33,15 +33,43 @@ class ElegibilidadeCertificado
             ]);
         }
 
-        if ($percentual === null || $percentual < Certificado::FREQUENCIA_MINIMA) {
+        $minima = FrequenciaMinima::paraMatricula($matricula);
+
+        if ($percentual === null || $percentual < $minima) {
             throw ValidationException::withMessages([
-                'id_matricula' => 'A frequência mínima para o certificado é '.Certificado::FREQUENCIA_MINIMA.'%.',
+                'id_matricula' => 'A frequência mínima para o certificado é '.$minima.'%.',
             ]);
         }
 
         return [
             'percentual' => $percentual,
             'carga_horaria' => $this->cargaHoraria($matricula),
+        ];
+    }
+
+    /**
+     * Preview sem lançar exceção — null quando a matrícula não está elegível.
+     *
+     * @return array{percentual: float, carga_horaria: float, frequencia_minima: float}|null
+     */
+    public function preview(Matricula $matricula): ?array
+    {
+        if ($matricula->status !== Certificado::STATUS_MATRICULA) {
+            return null;
+        }
+
+        $resumo = $this->frequencia->montar((int) $matricula->id_aluno, $matricula->id)['resumo'];
+        $percentual = $resumo['percentual'];
+        $minima = FrequenciaMinima::paraMatricula($matricula);
+
+        if ($resumo['total'] === 0 || $percentual === null || $percentual < $minima) {
+            return null;
+        }
+
+        return [
+            'percentual' => (float) $percentual,
+            'carga_horaria' => $this->cargaHoraria($matricula),
+            'frequencia_minima' => $minima,
         ];
     }
 

@@ -317,4 +317,53 @@ class TemplateCertificadoTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.id_template_certificado', null);
     }
+
+    public function test_duplicar_template_copia_conteudo_e_fundo(): void
+    {
+        $conteudo = LayoutCertificado::encode([
+            'version' => 1,
+            'elementos' => [[
+                'id' => 'el_1',
+                'tipo' => 'texto',
+                'x' => 10,
+                'y' => 40,
+                'w' => 80,
+                'h' => 10,
+                'texto' => '{{nome_aluno}}',
+                'fonteTamanho' => 16,
+                'fontePeso' => 'normal',
+                'alinhamento' => 'center',
+                'cor' => '#18181b',
+            ]],
+        ]);
+
+        $template = $this->naInstituicao($this->instituicao, fn () => TemplateCertificado::create([
+            'nome' => 'Original',
+            'conteudo' => $conteudo,
+        ]));
+
+        $this->comoUsuario($this->secretaria, $this->instituicao);
+        $arquivo = UploadedFile::fake()->image('fundo.jpg', 800, 600);
+        $this->post('/api/templates-certificados/'.$template->id.'/fundo', ['fundo' => $arquivo], [
+            'Accept' => 'application/json',
+        ])->assertOk();
+
+        $template->refresh();
+        $fundoOriginal = $template->fundo_path;
+        $this->assertNotEmpty($fundoOriginal);
+
+        $resposta = $this->postJson('/api/templates-certificados/'.$template->id.'/duplicar')
+            ->assertCreated()
+            ->assertJsonPath('data.nome', 'Original (cópia)')
+            ->assertJsonPath('data.conteudo', $conteudo);
+
+        $copiaId = $resposta->json('data.id');
+        $copia = TemplateCertificado::findOrFail($copiaId);
+        $this->assertNotSame($fundoOriginal, $copia->fundo_path);
+        Storage::disk('public')->assertExists($copia->fundo_path);
+
+        $this->postJson('/api/templates-certificados/'.$template->id.'/duplicar')
+            ->assertCreated()
+            ->assertJsonPath('data.nome', 'Original (cópia 2)');
+    }
 }

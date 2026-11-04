@@ -88,6 +88,39 @@ class TemplateCertificadoController extends Controller
         return response()->json(null, 204);
     }
 
+    #[OA\Post(path: '/api/templates-certificados/{templateCertificado}/duplicar', summary: 'Duplicar template', security: [['sanctum' => []]], tags: ['Academico'])]
+    public function duplicar(TemplateCertificado $templateCertificado)
+    {
+        Gate::authorize('create', TemplateCertificado::class);
+        Gate::authorize('view', $templateCertificado);
+
+        $copia = TemplateCertificado::create([
+            'nome' => $this->nomeCopia($templateCertificado->nome),
+            'conteudo' => $templateCertificado->conteudo,
+            'fundo_path' => $this->fundos->copiarFundo($templateCertificado->fundo_path),
+        ]);
+
+        return (new TemplateCertificadoResource($copia))
+            ->response()
+            ->setStatusCode(201);
+    }
+
+    private function nomeCopia(string $nomeOriginal): string
+    {
+        $base = mb_substr(trim($nomeOriginal).' (cópia)', 0, 150);
+        $candidato = $base;
+        $sufixo = 2;
+
+        while (TemplateCertificado::query()->where('nome', $candidato)->exists()) {
+            $sufixoTexto = ' (cópia '.$sufixo.')';
+            $tronco = mb_substr(trim($nomeOriginal), 0, max(1, 150 - mb_strlen($sufixoTexto)));
+            $candidato = $tronco.$sufixoTexto;
+            $sufixo++;
+        }
+
+        return $candidato;
+    }
+
     #[OA\Post(path: '/api/templates-certificados/{templateCertificado}/fundo', summary: 'Enviar fundo do template', security: [['sanctum' => []]], tags: ['Academico'])]
     public function uploadFundo(UploadFundoTemplateCertificadoRequest $request, TemplateCertificado $templateCertificado)
     {

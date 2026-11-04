@@ -43,6 +43,25 @@ class TemplateCertificadoFundoService
         return $destino;
     }
 
+    public function copiarFundo(?string $caminhoOrigem): ?string
+    {
+        if (! $caminhoOrigem) {
+            return null;
+        }
+
+        $disco = Storage::disk(TemplateCertificado::DISCO_FUNDO);
+        if (! $disco->exists($caminhoOrigem)) {
+            return null;
+        }
+
+        $extensao = pathinfo($caminhoOrigem, PATHINFO_EXTENSION) ?: 'jpg';
+        $pasta = 'certificados/fundos/'.(InstituicaoContext::id() ?? 'geral');
+        $destino = $pasta.'/'.uniqid('fundo_', true).'.'.$extensao;
+        $disco->put($destino, $disco->get($caminhoOrigem));
+
+        return $destino;
+    }
+
     public function remover(?string $caminho): void
     {
         if (! $caminho) {

@@ -34,11 +34,25 @@ class CertificadoPolicy
         return $this->viewAnyDoAluno($user, (int) $alunoId);
     }
 
+    public function viewAnyStaff(User $user): Response
+    {
+        return $this->secretariaOuAdmin($user);
+    }
+
+    public function baixarPdfStaff(User $user, Certificado $certificado): Response
+    {
+        return $this->secretariaOuAdmin($user);
+    }
+
     public function emitir(User $user, Matricula $matricula): Response
     {
-        return match ($user->role) {
-            'secretaria' => Response::allow(),
-            default => Response::deny('Acesso restrito: a secretaria emite o certificado.'),
-        };
+        return $this->secretariaOuAdmin($user, 'Acesso restrito: a secretaria emite o certificado.');
+    }
+
+    private function secretariaOuAdmin(User $user, string $mensagem = 'Acesso restrito à secretaria.'): Response
+    {
+        return in_array($user->role, ['secretaria', 'admin'], true)
+            ? Response::allow()
+            : Response::deny($mensagem);
     }
 }
