@@ -24,6 +24,16 @@ class ElegibilidadeCertificado
             ]);
         }
 
+        return $this->avaliarFrequencia($matricula);
+    }
+
+    /**
+     * Frequência + carga, sem exigir status `completada` (uso no encerramento de turma).
+     *
+     * @return array{percentual: float|null, carga_horaria: float}
+     */
+    public function avaliarFrequencia(Matricula $matricula): array
+    {
         $resumo = $this->frequencia->montar((int) $matricula->id_aluno, $matricula->id)['resumo'];
         $percentual = $resumo['percentual'];
 
@@ -58,6 +68,16 @@ class ElegibilidadeCertificado
             return null;
         }
 
+        return $this->previewFrequencia($matricula);
+    }
+
+    /**
+     * Preview só pela frequência (ignora status da matrícula).
+     *
+     * @return array{percentual: float, carga_horaria: float, frequencia_minima: float}|null
+     */
+    public function previewFrequencia(Matricula $matricula): ?array
+    {
         $resumo = $this->frequencia->montar((int) $matricula->id_aluno, $matricula->id)['resumo'];
         $percentual = $resumo['percentual'];
         $minima = FrequenciaMinima::paraMatricula($matricula);
@@ -70,6 +90,33 @@ class ElegibilidadeCertificado
             'percentual' => (float) $percentual,
             'carga_horaria' => $this->cargaHoraria($matricula),
             'frequencia_minima' => $minima,
+        ];
+    }
+
+    /**
+     * Diagnóstico para listagem de inaptos no encerramento.
+     *
+     * @return array{percentual: float|null, frequencia_minima: float, carga_horaria: float, motivo: string}
+     */
+    public function diagnosticoFrequencia(Matricula $matricula): array
+    {
+        $resumo = $this->frequencia->montar((int) $matricula->id_aluno, $matricula->id)['resumo'];
+        $percentual = $resumo['percentual'];
+        $minima = FrequenciaMinima::paraMatricula($matricula);
+
+        if ($resumo['total'] === 0) {
+            $motivo = 'Não há chamadas registradas para calcular a frequência.';
+        } elseif ($percentual === null || $percentual < $minima) {
+            $motivo = 'A frequência mínima para o certificado é '.$minima.'%.';
+        } else {
+            $motivo = 'Não elegível.';
+        }
+
+        return [
+            'percentual' => $percentual !== null ? (float) $percentual : null,
+            'frequencia_minima' => $minima,
+            'carga_horaria' => $this->cargaHoraria($matricula),
+            'motivo' => $motivo,
         ];
     }
 

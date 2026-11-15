@@ -5,6 +5,7 @@ use App\Modules\Academico\Http\Controllers\AlunoBoletimController;
 use App\Modules\Academico\Http\Controllers\AlunoCertificadoController;
 use App\Modules\Academico\Http\Controllers\AlunoFrequenciaController;
 use App\Modules\Academico\Http\Controllers\CertificadoController;
+use App\Modules\Academico\Http\Controllers\EncerramentoCertificadosTurmaController;
 use App\Modules\Academico\Http\Controllers\TemplateCertificadoController;
 use App\Modules\Academico\Http\Controllers\PublicCertificadoController;
 use App\Modules\Academico\Http\Controllers\AlunoJustificativaController;
@@ -104,6 +105,8 @@ Route::middleware(['auth:sanctum', 'ensure.instituicao.membership', 'ensure.senh
         Route::apiResource('niveis', NivelController::class);
 
         Route::patch('turmas/{turma}/status', [TurmaController::class, 'updateStatus']);
+        Route::get('turmas/{turma}/encerramento-certificados', [EncerramentoCertificadosTurmaController::class, 'preview']);
+        Route::post('turmas/{turma}/encerramento-certificados', [EncerramentoCertificadosTurmaController::class, 'emitir']);
         Route::apiResource('turmas', TurmaController::class)->only(['store', 'update', 'destroy']);
         Route::apiResource('turma-horarios', TurmaHorarioController::class)
             ->parameters(['turma-horarios' => 'turmaHorario'])
