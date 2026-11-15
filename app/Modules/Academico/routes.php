@@ -116,6 +116,7 @@ Route::middleware(['auth:sanctum', 'ensure.instituicao.membership', 'ensure.senh
         Route::get('certificados', [CertificadoController::class, 'index']);
         Route::get('certificados/elegiveis', [CertificadoController::class, 'elegiveis']);
         Route::post('certificados/emitir-lote', [CertificadoController::class, 'emitirLote']);
+        Route::post('certificados/{certificado}/reemitir', [CertificadoController::class, 'reemitir']);
         Route::get('certificados/{certificado}/pdf', [CertificadoController::class, 'pdf']);
         Route::post('matriculas/{matricula}/certificados', [CertificadoController::class, 'store']);
         Route::apiResource('templates-certificados', TemplateCertificadoController::class)

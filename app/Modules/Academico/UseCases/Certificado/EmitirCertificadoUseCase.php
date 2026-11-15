@@ -4,10 +4,10 @@ namespace App\Modules\Academico\UseCases\Certificado;
 
 use App\Modules\Academico\Models\Certificado;
 use App\Modules\Academico\Models\Matricula;
-use App\Modules\Academico\Models\TemplateCertificado;
 use App\Modules\Academico\Services\SubstituirPlaceholdersCertificado;
 use App\Modules\Academico\Services\TemplateCertificadoFundoService;
 use App\Modules\Academico\Support\ElegibilidadeCertificado;
+use App\Modules\Academico\Support\ResolverTemplateCertificado;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -17,6 +17,7 @@ class EmitirCertificadoUseCase
         private readonly ElegibilidadeCertificado $elegibilidade,
         private readonly SubstituirPlaceholdersCertificado $placeholders,
         private readonly TemplateCertificadoFundoService $fundos,
+        private readonly ResolverTemplateCertificado $resolverTemplate,
     ) {}
 
     public function execute(Matricula $matricula): Certificado
@@ -30,7 +31,7 @@ class EmitirCertificadoUseCase
         }
 
         $dados = $this->elegibilidade->avaliar($matricula);
-        $template = $this->resolverTemplate($matricula);
+        $template = $this->resolverTemplate->doCurso($matricula);
 
         return DB::transaction(function () use ($matricula, $dados, $template) {
             $certificado = Certificado::create([
@@ -59,16 +60,5 @@ class EmitirCertificadoUseCase
                 'matricula.nivel',
             ]);
         });
-    }
-
-    private function resolverTemplate(Matricula $matricula): ?TemplateCertificado
-    {
-        $matricula->loadMissing(['turma.curso.templateCertificado', 'curso.templateCertificado']);
-
-        $curso = $matricula->tipo === 'curso'
-            ? $matricula->curso
-            : $matricula->turma?->curso;
-
-        return $curso?->templateCertificado;
     }
 }

@@ -44,6 +44,11 @@ class CertificadoPolicy
         return $this->secretariaOuAdmin($user);
     }
 
+    public function reemitir(User $user, Certificado $certificado): Response
+    {
+        return $this->secretariaOuAdmin($user, 'Acesso restrito: a secretaria reemite o certificado.');
+    }
+
     public function emitir(User $user, Matricula $matricula): Response
     {
         return $this->secretariaOuAdmin($user, 'Acesso restrito: a secretaria emite o certificado.');

@@ -1,26 +1,46 @@
 {
     "inter": {
         "normal": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/inter_normal_3f26056cd420cc7b578f2a747b6c16f9",
-        "bold": "inter_bold_397e48164bb6d1241111ddcec91f33bc"
+        "bold": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/inter_bold_397e48164bb6d1241111ddcec91f33bc",
+        "200": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/inter_200_f725992df423becee6ab182b1db1431b",
+        "300": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/inter_300_2d454e55eee6d6f9f7008f9cef2eaf26",
+        "800": "inter_800_c9bde6cd673692d1c4efe3bc10584e19"
     },
     "roboto": {
         "normal": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/roboto_normal_3ab822ddc314830e6aaceb7638b2a47f",
-        "bold": "roboto_bold_88d59da2fbf6bd1aeb37a56f13c94b3c"
+        "bold": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/roboto_bold_88d59da2fbf6bd1aeb37a56f13c94b3c",
+        "200": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/roboto_200_b71ea4a334fcfe8770d530d00be705f0",
+        "300": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/roboto_300_cfc8e73991bcf5c6e85d706150f62170",
+        "800": "roboto_800_174b1601b755285623714e304336b25a"
     },
     "montserrat": {
         "normal": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/montserrat_normal_49c541afa7243f96b243294814ac9d5b",
-        "bold": "montserrat_bold_e24b15d5a43dd0da7c1b7dcca820371f"
+        "bold": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/montserrat_bold_e24b15d5a43dd0da7c1b7dcca820371f",
+        "200": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/montserrat_200_6873a4e0d42528d09ae96b166774699d",
+        "300": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/montserrat_300_364457b82f55ab0d05477d33a37cf4e4",
+        "800": "montserrat_800_dc4ea1af8ce9215bbd1018c4dc40c573"
     },
     "playfair display": {
         "normal": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/playfair_display_normal_88935f895bd53ae2bbae328a08aefe0b",
-        "bold": "playfair_display_bold_9891eed5a17637f52abae3ff1e4ad8e7"
+        "bold": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/playfair_display_bold_9891eed5a17637f52abae3ff1e4ad8e7",
+        "800": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/playfair_display_800_64830b633cdbd78f6298eca1d0f0f23d",
+        "200": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/playfair_display_200_88935f895bd53ae2bbae328a08aefe0b",
+        "300": "playfair_display_300_88935f895bd53ae2bbae328a08aefe0b"
     },
     "lora": {
         "normal": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/lora_normal_805448eaabcbc422a5dad154f626cb42",
-        "bold": "lora_bold_a1004574a9bc894a2ed831de624ff419"
+        "bold": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/lora_bold_a1004574a9bc894a2ed831de624ff419",
+        "500": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/lora_500_299163b82a86c5c06ba5e56d2e7ce116",
+        "600": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/lora_600_ca1418948ff05214be64b305ebcaf548",
+        "200": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/lora_200_805448eaabcbc422a5dad154f626cb42",
+        "300": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/lora_300_805448eaabcbc422a5dad154f626cb42",
+        "800": "lora_800_805448eaabcbc422a5dad154f626cb42"
     },
     "great vibes": {
         "normal": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/great_vibes_normal_6bdb21d500b0fdcc632a527a967a77a3",
-        "bold": "great_vibes_bold_6bdb21d500b0fdcc632a527a967a77a3"
+        "bold": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/great_vibes_bold_6bdb21d500b0fdcc632a527a967a77a3",
+        "200": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/great_vibes_200_6bdb21d500b0fdcc632a527a967a77a3",
+        "300": "C:\\laragon\\www\\compasso\\backend\\storage\\fonts\/great_vibes_300_6bdb21d500b0fdcc632a527a967a77a3",
+        "800": "great_vibes_800_6bdb21d500b0fdcc632a527a967a77a3"
     }
 }
