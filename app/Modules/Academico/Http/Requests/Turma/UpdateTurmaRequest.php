@@ -18,6 +18,10 @@ use Illuminate\Validation\Rule;
         new OA\Property(property: "descricao", type: "string", maxLength: 255, nullable: true, example: "Turma de Violão Iniciante"),
         new OA\Property(property: "observacoes", type: "string", nullable: true, example: "Aulas aos sábados"),
         new OA\Property(property: "valor_mensalidade", type: "number", format: "float", nullable: true, example: 150.00),
+        new OA\Property(property: "modo_geracao_mensalidades", type: "string", nullable: true, enum: ["automatico", "formulario", "duracao_turma"], example: "formulario"),
+        new OA\Property(property: "dia_vencimento_mensalidade", type: "integer", nullable: true, example: 10),
+        new OA\Property(property: "quantidade_parcelas_mensalidade", type: "integer", nullable: true, example: 12),
+        new OA\Property(property: "inicio_parcelas_mensalidade", type: "string", nullable: true, enum: ["mes_matricula", "mes_seguinte"], example: "mes_seguinte"),
         new OA\Property(property: "tipo_agendamento", type: "string", enum: ["datas", "quantidade"], example: "datas"),
         new OA\Property(property: "data_inicio", type: "string", format: "date", nullable: true, example: "2024-01-01"),
         new OA\Property(property: "data_fim", type: "string", format: "date", nullable: true, example: "2024-06-30"),
@@ -49,8 +53,10 @@ class UpdateTurmaRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->has('frequencia_minima') && $this->input('frequencia_minima') === '') {
-            $this->merge(['frequencia_minima' => null]);
+        foreach (['frequencia_minima', 'modo_geracao_mensalidades', 'dia_vencimento_mensalidade', 'quantidade_parcelas_mensalidade', 'inicio_parcelas_mensalidade'] as $campo) {
+            if ($this->has($campo) && $this->input($campo) === '') {
+                $this->merge([$campo => null]);
+            }
         }
     }
 
@@ -70,6 +76,10 @@ class UpdateTurmaRequest extends FormRequest
             'descricao' => ['nullable', 'string', 'max:255'],
             'observacoes' => ['nullable', 'string'],
             'valor_mensalidade' => ['nullable', 'numeric', 'min:0'],
+            'modo_geracao_mensalidades' => ['nullable', Rule::in(['automatico', 'formulario', 'duracao_turma'])],
+            'dia_vencimento_mensalidade' => ['nullable', 'integer', 'min:1', 'max:31'],
+            'quantidade_parcelas_mensalidade' => ['nullable', 'integer', 'min:1', 'max:24'],
+            'inicio_parcelas_mensalidade' => ['nullable', Rule::in(['mes_matricula', 'mes_seguinte'])],
             'tipo_agendamento' => ['sometimes', 'required', Rule::in(['datas', 'quantidade'])],
             'data_inicio' => ['sometimes', 'required_if:tipo_agendamento,datas,quantidade', 'nullable', 'date'],
             'data_fim' => ['sometimes', 'required_if:tipo_agendamento,datas', 'nullable', 'date', 'after_or_equal:data_inicio'],

@@ -106,6 +106,9 @@ class SugestaoProgressaoResource extends JsonResource
                     'professor' => $t->professor?->usuario?->nome,
                     'alunos_vigentes' => (int) $t->alunos_vigentes_count,
                     'maximo_alunos' => (int) $t->maximo_alunos,
+                    'valor_mensalidade' => $t->valor_mensalidade !== null ? (float) $t->valor_mensalidade : null,
+                    'dia_vencimento_mensalidade' => $t->dia_vencimento_mensalidade,
+                    'quantidade_parcelas_mensalidade' => $t->quantidade_parcelas_mensalidade,
                 ])->values()->all()
             ),
         ];

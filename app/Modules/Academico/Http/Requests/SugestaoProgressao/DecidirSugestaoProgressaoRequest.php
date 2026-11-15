@@ -17,6 +17,12 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'decisao', type: 'string', enum: [SugestaoProgressao::STATUS_APROVADA, SugestaoProgressao::STATUS_REJEITADA], example: 'aprovada'),
         new OA\Property(property: 'id_turma_destino', type: 'integer', nullable: true, description: 'Obrigatório ao aprovar matrícula em turma', example: 7),
         new OA\Property(property: 'motivo_decisao', type: 'string', nullable: true, maxLength: 2000, description: 'Obrigatório ao rejeitar'),
+        new OA\Property(property: 'reajustar_mensalidades', type: 'boolean', nullable: true, example: true),
+        new OA\Property(property: 'gerar_novas_mensalidades', type: 'boolean', nullable: true, example: false),
+        new OA\Property(property: 'valor_mensalidade_geracao', type: 'number', format: 'float', nullable: true, example: 180.00),
+        new OA\Property(property: 'quantidade_parcelas', type: 'integer', nullable: true, example: 6),
+        new OA\Property(property: 'dia_vencimento', type: 'integer', nullable: true, example: 10),
+        new OA\Property(property: 'data_inicio_mensalidades', type: 'string', format: 'date', nullable: true),
     ]
 )]
 class DecidirSugestaoProgressaoRequest extends FormRequest
@@ -32,6 +38,12 @@ class DecidirSugestaoProgressaoRequest extends FormRequest
             'decisao' => ['required', Rule::in([SugestaoProgressao::STATUS_APROVADA, SugestaoProgressao::STATUS_REJEITADA])],
             'id_turma_destino' => ['nullable', 'integer', InstituicaoContext::existsRule('turmas')->whereNull('deleted_at')],
             'motivo_decisao' => ['nullable', 'string', 'max:2000', 'required_if:decisao,'.SugestaoProgressao::STATUS_REJEITADA],
+            'reajustar_mensalidades' => ['sometimes', 'boolean'],
+            'gerar_novas_mensalidades' => ['sometimes', 'boolean'],
+            'valor_mensalidade_geracao' => ['nullable', 'numeric', 'min:0'],
+            'quantidade_parcelas' => ['nullable', 'integer', 'min:1', 'max:24'],
+            'dia_vencimento' => ['nullable', 'integer', 'min:1', 'max:31'],
+            'data_inicio_mensalidades' => ['nullable', 'date'],
         ];
     }
 

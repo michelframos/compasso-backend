@@ -6,21 +6,34 @@ use App\Modules\Academico\Models\Matricula;
 use App\Modules\Academico\Models\SugestaoProgressao;
 use App\Modules\Academico\Models\Turma;
 use App\Modules\Academico\Services\ProgressaoNivelService;
+use App\Modules\Academico\UseCases\Matricula\AjustarMensalidadesNaMudancaTurmaUseCase;
 use App\Modules\Core\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class DecidirProgressaoUseCase
 {
-    public function __construct(private readonly ProgressaoNivelService $progressao)
-    {
+    public function __construct(
+        private readonly ProgressaoNivelService $progressao,
+        private readonly AjustarMensalidadesNaMudancaTurmaUseCase $ajustarMensalidades,
+    ) {
     }
 
     /**
      * Ao aprovar: matrícula em turma é transferida para a turma de destino (com registro no histórico);
      * matrícula por curso tem o nível trocado.
      *
-     * @param  array{decisao: string, id_turma_destino?: ?int, motivo_decisao?: ?string}  $dados
+     * @param  array{
+     *   decisao: string,
+     *   id_turma_destino?: ?int,
+     *   motivo_decisao?: ?string,
+     *   reajustar_mensalidades?: bool,
+     *   gerar_novas_mensalidades?: bool,
+     *   valor_mensalidade_geracao?: float|int|string|null,
+     *   quantidade_parcelas?: int|null,
+     *   dia_vencimento?: int|null,
+     *   data_inicio_mensalidades?: string|null
+     * }  $dados
      */
     public function execute(SugestaoProgressao $sugestao, array $dados, User $decisor): SugestaoProgressao
     {
@@ -35,7 +48,7 @@ class DecidirProgressaoUseCase
 
             if ($dados['decisao'] === SugestaoProgressao::STATUS_APROVADA) {
                 $matricula = Matricula::query()->with('turma')->lockForUpdate()->findOrFail($sugestao->id_matricula);
-                $idTurmaDestino = $this->aplicarProgressao($sugestao, $matricula, $dados['id_turma_destino'] ?? null);
+                $idTurmaDestino = $this->aplicarProgressao($sugestao, $matricula, $dados);
             }
 
             $sugestao->update([
@@ -50,7 +63,10 @@ class DecidirProgressaoUseCase
         });
     }
 
-    private function aplicarProgressao(SugestaoProgressao $sugestao, Matricula $matricula, ?int $idTurmaDestino): ?int
+    /**
+     * @param  array<string, mixed>  $dados
+     */
+    private function aplicarProgressao(SugestaoProgressao $sugestao, Matricula $matricula, array $dados): ?int
     {
         if (! $matricula->estaVigente()) {
             throw ValidationException::withMessages(['id_matricula' => 'A matrícula não está mais vigente.']);
@@ -61,6 +77,8 @@ class DecidirProgressaoUseCase
 
             return null;
         }
+
+        $idTurmaDestino = $dados['id_turma_destino'] ?? null;
 
         if ($idTurmaDestino === null) {
             throw ValidationException::withMessages(['id_turma_destino' => 'Escolha a turma de destino do aluno.']);
@@ -77,6 +95,15 @@ class DecidirProgressaoUseCase
             $turma->id,
             "Progressão de nível para {$sugestao->nivelSugerido?->nome} (sugestão #{$sugestao->id})"
         );
+
+        $this->ajustarMensalidades->execute($matricula->fresh(['aluno.usuario']), $turma, [
+            'reajustar_mensalidades' => (bool) ($dados['reajustar_mensalidades'] ?? false),
+            'gerar_novas_mensalidades' => (bool) ($dados['gerar_novas_mensalidades'] ?? false),
+            'valor' => $dados['valor_mensalidade_geracao'] ?? null,
+            'quantidade_parcelas' => $dados['quantidade_parcelas'] ?? null,
+            'dia_vencimento' => $dados['dia_vencimento'] ?? null,
+            'data_inicio' => $dados['data_inicio_mensalidades'] ?? null,
+        ]);
 
         return $turma->id;
     }

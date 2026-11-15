@@ -25,6 +25,10 @@ use Illuminate\Validation\Rule;
         new OA\Property(property: "data_fim", type: "string", format: "date", nullable: true, example: "2024-06-30"),
         new OA\Property(property: "quantidade_aulas", type: "integer", nullable: true, example: 20),
         new OA\Property(property: "valor_mensalidade", type: "number", format: "float", nullable: true, example: 150.00),
+        new OA\Property(property: "modo_geracao_mensalidades", type: "string", nullable: true, enum: ["automatico", "formulario", "duracao_turma"], example: "automatico"),
+        new OA\Property(property: "dia_vencimento_mensalidade", type: "integer", nullable: true, example: 10),
+        new OA\Property(property: "quantidade_parcelas_mensalidade", type: "integer", nullable: true, example: 12),
+        new OA\Property(property: "inicio_parcelas_mensalidade", type: "string", nullable: true, enum: ["mes_matricula", "mes_seguinte"], example: "mes_seguinte"),
         new OA\Property(property: "percentual_comissao_especifico", type: "number", format: "float", nullable: true, example: 20.00),
         new OA\Property(property: "valor_hora_aula_especifico", type: "number", format: "float", nullable: true, example: 60.00),
         new OA\Property(
@@ -52,8 +56,10 @@ class StoreTurmaRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->has('frequencia_minima') && $this->input('frequencia_minima') === '') {
-            $this->merge(['frequencia_minima' => null]);
+        foreach (['frequencia_minima', 'modo_geracao_mensalidades', 'dia_vencimento_mensalidade', 'quantidade_parcelas_mensalidade', 'inicio_parcelas_mensalidade'] as $campo) {
+            if ($this->has($campo) && $this->input($campo) === '') {
+                $this->merge([$campo => null]);
+            }
         }
     }
 
@@ -78,6 +84,10 @@ class StoreTurmaRequest extends FormRequest
             'data_fim' => ['required_if:tipo_agendamento,datas', 'nullable', 'date', 'after_or_equal:data_inicio'],
             'quantidade_aulas' => ['required_if:tipo_agendamento,quantidade', 'nullable', 'integer', 'min:1'],
             'valor_mensalidade' => ['nullable', 'numeric', 'min:0'],
+            'modo_geracao_mensalidades' => ['nullable', Rule::in(['automatico', 'formulario', 'duracao_turma'])],
+            'dia_vencimento_mensalidade' => ['nullable', 'integer', 'min:1', 'max:31'],
+            'quantidade_parcelas_mensalidade' => ['nullable', 'integer', 'min:1', 'max:24'],
+            'inicio_parcelas_mensalidade' => ['nullable', Rule::in(['mes_matricula', 'mes_seguinte'])],
             'percentual_comissao_especifico' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'valor_hora_aula_especifico' => ['nullable', 'numeric', 'min:0'],
             'horarios' => ['nullable', 'array'],

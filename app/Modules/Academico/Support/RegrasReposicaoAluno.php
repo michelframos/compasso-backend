@@ -164,10 +164,7 @@ class RegrasReposicaoAluno
 
     private function jaEhDoAluno(AulaTurma $aula, int $idAluno): bool
     {
-        if ((int) $aula->id_aluno_especifico === $idAluno) {
-            return true;
-        }
-
+        // Aula avulsa do próprio aluno (ex.: reposição criada na agenda) pode ser o destino.
         if ($aula->id_aluno_especifico !== null) {
             return false;
         }

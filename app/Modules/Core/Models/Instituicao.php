@@ -55,6 +55,10 @@ class Instituicao extends Model
         'limite_reposicoes_periodo',
         'prazo_reposicao_dias',
         'frequencia_minima',
+        'modo_geracao_mensalidades',
+        'dia_vencimento_mensalidade',
+        'quantidade_parcelas_mensalidade',
+        'inicio_parcelas_mensalidade',
     ];
 
     protected $hidden = [
@@ -76,6 +80,8 @@ class Instituicao extends Model
             'limite_reposicoes_periodo' => 'integer',
             'prazo_reposicao_dias' => 'integer',
             'frequencia_minima' => 'decimal:2',
+            'dia_vencimento_mensalidade' => 'integer',
+            'quantidade_parcelas_mensalidade' => 'integer',
         ];
     }
 

@@ -41,7 +41,7 @@ class ReposicaoDoAlunoResource extends JsonResource
                 'data' => $destino->data?->toDateString(),
                 'hora_inicio' => substr((string) $destino->hora_inicio, 0, 5),
                 'hora_termino' => substr((string) $destino->hora_termino, 0, 5),
-                'turma' => $destino->turma?->descricao,
+                'turma' => $destino->turma?->descricao ?? ($destino->id_aluno_especifico ? 'Aula individual' : null),
             ] : null,
             'decidido_em' => $this->decidido_em ? substr((string) $this->decidido_em, 0, 16) : null,
         ];

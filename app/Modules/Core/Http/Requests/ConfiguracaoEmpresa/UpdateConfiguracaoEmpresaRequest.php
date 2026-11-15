@@ -50,6 +50,10 @@ class UpdateConfiguracaoEmpresaRequest extends FormRequest
             'limite_reposicoes_periodo' => 'sometimes|nullable|integer|min:0|max:99',
             'prazo_reposicao_dias' => 'sometimes|nullable|integer|min:0|max:365',
             'frequencia_minima' => 'sometimes|required|numeric|min:0|max:100',
+            'modo_geracao_mensalidades' => 'sometimes|required|in:automatico,formulario,duracao_turma',
+            'dia_vencimento_mensalidade' => 'sometimes|required|integer|min:1|max:31',
+            'quantidade_parcelas_mensalidade' => 'sometimes|required|integer|min:1|max:24',
+            'inicio_parcelas_mensalidade' => 'sometimes|required|in:mes_matricula,mes_seguinte',
         ];
     }
 }

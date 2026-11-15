@@ -9,6 +9,8 @@ use App\Modules\Academico\Http\Requests\Matricula\UpdateMatriculaRequest;
 use App\Modules\Academico\Http\Requests\Matricula\GerarMensalidadesRequest;
 use App\Modules\Academico\Http\Resources\MatriculaResource;
 use App\Modules\Academico\Queries\ListMatriculasQuery;
+use App\Modules\Academico\Models\Turma;
+use App\Modules\Academico\UseCases\Matricula\AjustarMensalidadesNaMudancaTurmaUseCase;
 use App\Modules\Academico\UseCases\Matricula\CreateMatriculaUseCase;
 use App\Modules\Academico\UseCases\Matricula\GerarMensalidadesDaMatriculaUseCase;
 use App\Modules\Core\Http\Concerns\ResolvesSorting;
@@ -20,10 +22,22 @@ class MatriculaController extends Controller
 {
     use ResolvesSorting;
 
+    private const CAMPOS_MENSALIDADE_UPDATE = [
+        'reajustar_mensalidades',
+        'gerar_novas_mensalidades',
+        'valor_mensalidade_geracao',
+        'quantidade_parcelas',
+        'dia_vencimento',
+        'data_inicio_mensalidades',
+        'id_categoria_mensalidade',
+        'observacoes_mensalidade',
+    ];
+
     public function __construct(
         private readonly ListMatriculasQuery $listMatriculas,
         private readonly CreateMatriculaUseCase $createMatricula,
         private readonly GerarMensalidadesDaMatriculaUseCase $gerarMensalidades,
+        private readonly AjustarMensalidadesNaMudancaTurmaUseCase $ajustarMensalidades,
     ) {
     }
 
@@ -162,7 +176,30 @@ class MatriculaController extends Controller
     )]
     public function update(UpdateMatriculaRequest $request, Matricula $matricula)
     {
-        $matricula->update($request->validated());
+        $validated = $request->validated();
+        $opcoesMensalidade = array_intersect_key($validated, array_flip(self::CAMPOS_MENSALIDADE_UPDATE));
+        $dados = array_diff_key($validated, array_flip(self::CAMPOS_MENSALIDADE_UPDATE));
+
+        $turmaAnterior = $matricula->id_turma;
+        $matricula->update($dados);
+
+        $turmaNova = $dados['id_turma'] ?? null;
+        if ($turmaNova !== null && (int) $turmaNova !== (int) $turmaAnterior) {
+            $turmaDestino = Turma::query()->find((int) $turmaNova);
+            if ($turmaDestino !== null) {
+                $this->ajustarMensalidades->execute($matricula->fresh(['aluno.usuario']), $turmaDestino, [
+                    'reajustar_mensalidades' => (bool) ($opcoesMensalidade['reajustar_mensalidades'] ?? false),
+                    'gerar_novas_mensalidades' => (bool) ($opcoesMensalidade['gerar_novas_mensalidades'] ?? false),
+                    'valor' => $opcoesMensalidade['valor_mensalidade_geracao'] ?? null,
+                    'quantidade_parcelas' => $opcoesMensalidade['quantidade_parcelas'] ?? null,
+                    'dia_vencimento' => $opcoesMensalidade['dia_vencimento'] ?? null,
+                    'data_inicio' => $opcoesMensalidade['data_inicio_mensalidades'] ?? null,
+                    'id_categoria' => $opcoesMensalidade['id_categoria_mensalidade'] ?? null,
+                    'observacoes' => $opcoesMensalidade['observacoes_mensalidade'] ?? null,
+                ]);
+            }
+        }
+
         return new MatriculaResource($matricula->load(['aluno.usuario', 'turma.curso', 'turma.nivel', 'curso', 'nivel', 'professor.usuario']));
     }
 

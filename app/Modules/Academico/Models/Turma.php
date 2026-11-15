@@ -29,6 +29,10 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: "data_fim", type: "string", format: "date", nullable: true, example: "2024-06-30"),
         new OA\Property(property: "quantidade_aulas", type: "integer", nullable: true, example: 20),
         new OA\Property(property: "valor_mensalidade", type: "number", format: "float", nullable: true, example: 150.00),
+        new OA\Property(property: "modo_geracao_mensalidades", type: "string", nullable: true, example: "automatico", description: "null herda da instituição; automatico|formulario|duracao_turma"),
+        new OA\Property(property: "dia_vencimento_mensalidade", type: "integer", nullable: true, example: 10),
+        new OA\Property(property: "quantidade_parcelas_mensalidade", type: "integer", nullable: true, example: 12),
+        new OA\Property(property: "inicio_parcelas_mensalidade", type: "string", nullable: true, example: "mes_seguinte", description: "null herda; mes_matricula|mes_seguinte"),
         new OA\Property(property: "percentual_comissao_especifico", type: "number", format: "float", nullable: true, example: 20.00),
         new OA\Property(property: "valor_hora_aula_especifico", type: "number", format: "float", nullable: true, example: 60.00)
     ]
@@ -53,6 +57,10 @@ class Turma extends Model
         'data_fim',
         'quantidade_aulas',
         'valor_mensalidade',
+        'modo_geracao_mensalidades',
+        'dia_vencimento_mensalidade',
+        'quantidade_parcelas_mensalidade',
+        'inicio_parcelas_mensalidade',
         'percentual_comissao_especifico',
         'valor_hora_aula_especifico',
         'contrato_id'
@@ -62,6 +70,8 @@ class Turma extends Model
     protected $casts = [
         'status' => \App\Enums\TurmaStatus::class,
         'frequencia_minima' => 'decimal:2',
+        'dia_vencimento_mensalidade' => 'integer',
+        'quantidade_parcelas_mensalidade' => 'integer',
     ];
 
     public function curso()
