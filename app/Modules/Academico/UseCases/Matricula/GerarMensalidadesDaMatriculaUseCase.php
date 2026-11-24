@@ -24,7 +24,7 @@ class GerarMensalidadesDaMatriculaUseCase
             'quantidade_parcelas' => $dados['quantidade_parcelas'],
             'dia_vencimento' => $dados['dia_vencimento'],
             'data_inicio' => $dados['data_inicio'],
-            'id_categoria' => $dados['id_categoria'] ?? 1,
+            'id_categoria' => $dados['id_categoria'] ?? null,
             'observacoes' => $dados['observacoes'] ?? "Geração automática via matrícula #{$matricula->id}",
             'nome_aluno' => $matricula->aluno->usuario->nome,
             'id_aluno' => $matricula->id_aluno,

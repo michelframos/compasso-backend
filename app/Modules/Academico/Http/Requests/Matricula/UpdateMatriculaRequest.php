@@ -18,7 +18,15 @@ use App\Enums\TurmaStatus;
         new OA\Property(property: "data", type: "string", format: "date", example: "2023-01-15"),
         new OA\Property(property: "status", type: "string", example: "inativa", nullable: true),
         new OA\Property(property: "observacoes", type: "string", nullable: true, example: "Observações da matrícula alteradas"),
-        new OA\Property(property: "id_lead", type: "integer", nullable: true, example: 1)
+        new OA\Property(property: "id_lead", type: "integer", nullable: true, example: 1),
+        new OA\Property(property: "reajustar_mensalidades", type: "boolean", nullable: true, example: true),
+        new OA\Property(property: "gerar_novas_mensalidades", type: "boolean", nullable: true, example: false),
+        new OA\Property(property: "valor_mensalidade_geracao", type: "number", format: "float", nullable: true, example: 180.00),
+        new OA\Property(property: "quantidade_parcelas", type: "integer", nullable: true, example: 6),
+        new OA\Property(property: "dia_vencimento", type: "integer", nullable: true, example: 10),
+        new OA\Property(property: "data_inicio_mensalidades", type: "string", format: "date", nullable: true),
+        new OA\Property(property: "id_categoria_mensalidade", type: "integer", nullable: true),
+        new OA\Property(property: "observacoes_mensalidade", type: "string", nullable: true)
     ]
 )]
 class UpdateMatriculaRequest extends FormRequest
@@ -51,6 +59,14 @@ class UpdateMatriculaRequest extends FormRequest
             'contrato_id'  => ['nullable', 'integer', InstituicaoContext::existsRule('contratos')],
             'id_lead'      => ['nullable', 'integer', InstituicaoContext::existsRule('leads')],
             'contrato_gerado' => 'nullable|string',
+            'reajustar_mensalidades' => 'sometimes|boolean',
+            'gerar_novas_mensalidades' => 'sometimes|boolean',
+            'valor_mensalidade_geracao' => 'nullable|numeric|min:0',
+            'quantidade_parcelas' => 'nullable|integer|min:1|max:24',
+            'dia_vencimento' => 'nullable|integer|min:1|max:31',
+            'data_inicio_mensalidades' => 'nullable|date',
+            'id_categoria_mensalidade' => ['nullable', InstituicaoContext::existsRule('categorias_contas')],
+            'observacoes_mensalidade' => 'nullable|string',
         ];
     }
 

@@ -50,7 +50,7 @@ class SolicitacaoReposicaoResource extends JsonResource
             'data' => $aula->data?->toDateString(),
             'hora_inicio' => substr((string) $aula->hora_inicio, 0, 5),
             'hora_termino' => substr((string) $aula->hora_termino, 0, 5),
-            'turma' => $aula->turma?->descricao,
+            'turma' => $aula->turma?->descricao ?? ($aula->id_aluno_especifico ? 'Aula individual' : null),
         ];
     }
 }

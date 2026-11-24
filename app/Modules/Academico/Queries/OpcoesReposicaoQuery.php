@@ -22,7 +22,11 @@ class OpcoesReposicaoQuery
 
         return AulaTurma::query()
             ->with('turma')
-            ->where('id_curso', $cursoId)
+            ->where(function ($curso) use ($cursoId): void {
+                // Aulas geradas pela turma às vezes só têm o curso na turma, não em id_curso.
+                $curso->where('id_curso', $cursoId)
+                    ->orWhereHas('turma', fn ($turma) => $turma->where('id_curso', $cursoId));
+            })
             ->where('status', 'agendada')
             ->whereDate('data', '>=', now()->toDateString())
             ->whereDate('data', '<=', now()->addDays(45)->toDateString())

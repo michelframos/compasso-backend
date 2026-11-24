@@ -4,12 +4,14 @@ namespace App\Modules\Academico\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Academico\Http\Requests\Certificado\EmitirLoteCertificadosRequest;
+use App\Modules\Academico\Http\Requests\Certificado\ReemitirCertificadoRequest;
 use App\Modules\Academico\Http\Resources\CertificadoResource;
 use App\Modules\Academico\Models\Certificado;
 use App\Modules\Academico\Models\Matricula;
 use App\Modules\Academico\Queries\ListarMatriculasElegiveisCertificado;
 use App\Modules\Academico\Services\CertificadoPdfService;
 use App\Modules\Academico\UseCases\Certificado\EmitirCertificadoUseCase;
+use App\Modules\Academico\UseCases\Certificado\ReemitirCertificadoUseCase;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
@@ -152,6 +154,41 @@ class CertificadoController extends Controller
                 'falhas' => $falhas,
             ],
         ]);
+    }
+
+    #[OA\Post(
+        path: '/api/certificados/{certificado}/reemitir',
+        summary: 'Reemitir certificado com template (mantém o código de verificação)',
+        security: [['sanctum' => []]],
+        tags: ['Academico'],
+        parameters: [
+            new OA\Parameter(name: 'certificado', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(ref: '#/components/schemas/ReemitirCertificadoRequest')
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Certificado reemitido', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', ref: '#/components/schemas/CertificadoResource'),
+            ])),
+            new OA\Response(response: 401, description: 'Não autenticado'),
+            new OA\Response(response: 403, description: 'Papel indevido'),
+            new OA\Response(response: 404, description: 'Certificado não encontrado'),
+            new OA\Response(response: 422, description: 'Não elegível ou template inválido'),
+        ]
+    )]
+    public function reemitir(
+        ReemitirCertificadoRequest $request,
+        Certificado $certificado,
+        ReemitirCertificadoUseCase $reemitir,
+    ) {
+        Gate::authorize('reemitir', $certificado);
+
+        $idTemplate = $request->validated('id_template_certificado');
+
+        return new CertificadoResource(
+            $reemitir->execute($certificado, $idTemplate !== null ? (int) $idTemplate : null)
+        );
     }
 
     #[OA\Get(

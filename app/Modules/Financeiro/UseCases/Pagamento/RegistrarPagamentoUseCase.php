@@ -2,6 +2,7 @@
 
 namespace App\Modules\Financeiro\UseCases\Pagamento;
 
+use App\Modules\Core\Contracts\CriarCobrancaIngressoPort;
 use App\Modules\Financeiro\Models\Conta;
 use App\Modules\Financeiro\Models\ContaPagamento;
 use Illuminate\Support\Facades\DB;
@@ -9,6 +10,8 @@ use Illuminate\Validation\ValidationException;
 
 class RegistrarPagamentoUseCase
 {
+    public function __construct(private readonly CriarCobrancaIngressoPort $cobrancaIngresso) {}
+
     public function execute(Conta $conta, array $dados): ContaPagamento
     {
         return DB::transaction(function () use ($conta, $dados) {
@@ -23,6 +26,7 @@ class RegistrarPagamentoUseCase
 
             $pagamento = $conta->pagamentos()->create($dados);
             $conta->recalcularStatus();
+            $this->cobrancaIngresso->sincronizarStatusConta($conta->fresh());
 
             return $pagamento;
         });

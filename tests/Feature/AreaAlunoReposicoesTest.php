@@ -274,6 +274,42 @@ class AreaAlunoReposicoesTest extends TestCase
         $this->assertSame(1, AulaPresenca::query()->where('id_aula_turma', $this->destino->id)->where('id_aluno', $this->ana->id)->count());
     }
 
+    public function test_aula_individual_do_aluno_aparece_como_destino_de_reposicao(): void
+    {
+        $avulsa = $this->naInstituicao($this->instituicao, fn () => AulaTurma::create([
+            'id_turma' => null,
+            'id_curso' => $this->destino->id_curso,
+            'id_professor' => $this->paula->id,
+            'id_aluno_especifico' => $this->ana->id,
+            'data' => '2026-10-30',
+            'hora_inicio' => '10:00',
+            'hora_termino' => '11:00',
+            'status' => 'agendada',
+            'tipo' => 'reposicao',
+        ]));
+
+        $pedido = $this->pedido($this->outraFalta, null, 'Escola escolhe a avulsa');
+
+        $secretaria = $this->criarUsuarioNaInstituicao($this->instituicao, 'secretaria');
+        $opcoes = $this->comoUsuario($secretaria, $this->instituicao)
+            ->getJson('/api/solicitacoes-reposicoes/'.$pedido->id.'/opcoes')
+            ->assertOk()
+            ->json('data');
+
+        $this->assertContains($avulsa->id, collect($opcoes)->pluck('id')->all());
+        $this->assertContains('Aula individual', collect($opcoes)->pluck('turma')->all());
+
+        $this->postJson('/api/solicitacoes-reposicoes/'.$pedido->id.'/decisao', [
+            'decisao' => 'aprovada',
+            'id_aula_turma_destino' => $avulsa->id,
+        ])->assertOk()->assertJsonPath('data.status', 'aprovada');
+
+        $this->assertSame('presente', AulaPresenca::query()
+            ->where('id_aula_turma', $avulsa->id)
+            ->where('id_aluno', $this->ana->id)
+            ->value('status'));
+    }
+
     public function test_recusa_nao_cria_presenca_e_os_demais_papeis_recebem_401_ou_403(): void
     {
         $this->withHeader('X-Tenant-Slug', $this->instituicao->slug)

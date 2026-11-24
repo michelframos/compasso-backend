@@ -148,12 +148,19 @@ class ClassSchedulingService
     /** Vaga na turma, descontando matrículas vigentes e reposições pendentes ou aprovadas de outros alunos. */
     public function temVaga(AulaTurma $aula, int $idAluno): bool
     {
-        if ($aula->id_turma === null) {
-            return false;
+        if ($aula->id_aluno_especifico !== null) {
+            return (int) $aula->id_aluno_especifico === $idAluno;
         }
 
-        if ($aula->id_aluno_especifico !== null && (int) $aula->id_aluno_especifico !== $idAluno) {
-            return false;
+        // Aula avulsa sem aluno e sem turma: um único encaixe possível.
+        if ($aula->id_turma === null) {
+            $reservado = SolicitacaoReposicao::query()
+                ->where('id_aula_turma_destino', $aula->id)
+                ->whereIn('status', SolicitacaoReposicao::ABERTAS)
+                ->where('id_aluno', '!=', $idAluno)
+                ->exists();
+
+            return ! $reservado;
         }
 
         $turma = $aula->relationLoaded('turma') ? $aula->turma : $aula->turma()->first();
@@ -204,6 +211,7 @@ class ClassSchedulingService
         if (!$exists) {
             AulaTurma::create([
                 'id_turma' => $turma->id,
+                'id_curso' => $turma->id_curso,
                 'id_professor' => $turma->id_professor,
                 'data' => $date->toDateString(),
                 'hora_inicio' => $horario->hora_inicio,

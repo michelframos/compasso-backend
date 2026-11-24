@@ -37,6 +37,10 @@ return [
             'label' => 'Espetáculos',
             'descricao' => 'Espetáculos e apresentações',
         ],
+        'bilheteria' => [
+            'label' => 'Bilheteria',
+            'descricao' => 'Ingressos, venda, cupons e validação por espetáculo',
+        ],
         'instrumentos' => [
             'label' => 'Instrumentos',
             'descricao' => 'Inventário e empréstimos',
