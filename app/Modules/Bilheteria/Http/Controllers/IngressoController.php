@@ -13,6 +13,7 @@ use App\Modules\Bilheteria\UseCases\GerarIngressosUseCase;
 use App\Modules\Bilheteria\UseCases\MarcarCortesiaUseCase;
 use App\Modules\Bilheteria\UseCases\UtilizarIngressoUseCase;
 use App\Modules\Bilheteria\UseCases\ValidarIngressoUseCase;
+use App\Modules\Bilheteria\Services\IngressoPdfService;
 use App\Modules\Bilheteria\UseCases\VenderIngressoUseCase;
 use App\Modules\Core\Http\Concerns\ResolvesSorting;
 use App\Modules\Espetaculos\Models\Espetaculo;
@@ -60,6 +61,13 @@ class IngressoController extends Controller
         Gate::authorize('view', $ingresso);
 
         return new IngressoResource($ingresso->load('espetaculo'));
+    }
+
+    public function pdf(Ingresso $ingresso, IngressoPdfService $pdf)
+    {
+        Gate::authorize('view', $ingresso);
+
+        return $pdf->download($ingresso->loadMissing(['espetaculo', 'template', 'instituicao']));
     }
 
     public function gerar(GerarIngressosRequest $request, Espetaculo $espetaculo, GerarIngressosUseCase $useCase)

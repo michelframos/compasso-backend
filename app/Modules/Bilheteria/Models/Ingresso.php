@@ -79,4 +79,18 @@ class Ingresso extends Model
 
         return (string) $this->status;
     }
+
+    public function elegivelPublicamente(): bool
+    {
+        return $this->status !== self::STATUS_DISPONIVEL;
+    }
+
+    public function urlPublicaPath(): ?string
+    {
+        if (! $this->elegivelPublicamente() || blank($this->codigo_qr)) {
+            return null;
+        }
+
+        return '/ingresso/'.$this->codigo_qr;
+    }
 }

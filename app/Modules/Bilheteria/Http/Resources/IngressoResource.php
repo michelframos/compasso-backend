@@ -25,6 +25,7 @@ class IngressoResource extends JsonResource
             'comprador_nome' => $this->comprador_nome,
             'comprador_documento' => $this->comprador_documento,
             'utilizado_em' => $this->utilizado_em?->toISOString(),
+            'url_publica' => $this->urlPublicaPath(),
             'espetaculo' => $this->whenLoaded('espetaculo', fn () => [
                 'id' => $this->espetaculo->id,
                 'titulo' => $this->espetaculo->titulo,

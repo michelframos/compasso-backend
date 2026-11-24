@@ -36,8 +36,9 @@ class LayoutIngressoRenderer
     private function texto(array $el, array $placeholders): string
     {
         $texto = $this->substituir((string) ($el['texto'] ?? ''), $placeholders);
+        // DomPDF corta glifos com overflow:hidden + height %; visible evita o clipping.
         $estilo = $this->box($el).sprintf(
-            'font-family:DejaVu Sans,sans-serif;font-size:%spx;font-weight:%s;text-align:%s;color:%s;overflow:hidden;line-height:1.3;',
+            'font-family:DejaVu Sans,sans-serif;font-size:%spx;font-weight:%s;text-align:%s;color:%s;background:transparent;overflow:visible;line-height:1.15;padding:0;margin:0;',
             (int) ($el['fonteTamanho'] ?? 14),
             $this->escapar((string) ($el['fontePeso'] ?? 'normal')),
             $this->escapar((string) ($el['alinhamento'] ?? 'left')),
@@ -85,9 +86,14 @@ class LayoutIngressoRenderer
     /** @param  array<string, mixed>  $el */
     private function retangulo(array $el): string
     {
-        $estilo = $this->box($el).sprintf(
-            'background:%s;border:%spx solid %s;box-sizing:border-box;',
-            $this->escapar((string) ($el['preenchimento'] ?? 'transparent')),
+        $preenchimento = (string) ($el['preenchimento'] ?? 'transparent');
+        // DomPDF trata "transparent" como branco opaco e cobre o texto abaixo.
+        $fundo = $preenchimento === '' || strtolower($preenchimento) === 'transparent'
+            ? 'background:none;'
+            : 'background:'.$this->escapar($preenchimento).';';
+
+        $estilo = $this->box($el).$fundo.sprintf(
+            'border:%spx solid %s;box-sizing:border-box;',
             (float) ($el['bordaLargura'] ?? 1),
             $this->escapar((string) ($el['bordaCor'] ?? '#312e81')),
         );
@@ -114,7 +120,8 @@ class LayoutIngressoRenderer
     private function box(array $el): string
     {
         return sprintf(
-            'position:absolute;left:%s%%;top:%s%%;width:%s%%;height:%s%%;',
+            // background:none evita faixas brancas opacas do DomPDF sobre o texto.
+            'position:absolute;left:%s%%;top:%s%%;width:%s%%;height:%s%%;background:none;',
             $this->num((float) ($el['x'] ?? 0)),
             $this->num((float) ($el['y'] ?? 0)),
             $this->num((float) ($el['w'] ?? 10)),

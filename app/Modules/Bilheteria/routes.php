@@ -2,8 +2,16 @@
 
 use App\Modules\Bilheteria\Http\Controllers\CupomIngressoController;
 use App\Modules\Bilheteria\Http\Controllers\IngressoController;
+use App\Modules\Bilheteria\Http\Controllers\PublicIngressoController;
 use App\Modules\Bilheteria\Http\Controllers\TemplateIngressoController;
 use Illuminate\Support\Facades\Route;
+
+Route::prefix('public')->group(function () {
+    Route::get('ingressos/{codigo}', [PublicIngressoController::class, 'show'])
+        ->middleware('throttle:60,1');
+    Route::get('ingressos/{codigo}/pdf', [PublicIngressoController::class, 'pdf'])
+        ->middleware('throttle:60,1');
+});
 
 Route::middleware([
     'auth:sanctum',
@@ -22,6 +30,7 @@ Route::middleware([
 
     Route::get('ingressos', [IngressoController::class, 'index']);
     Route::get('ingressos/relatorio', [IngressoController::class, 'relatorio']);
+    Route::get('ingressos/{ingresso}/pdf', [IngressoController::class, 'pdf']);
     Route::get('ingressos/{ingresso}', [IngressoController::class, 'show']);
     Route::post('espetaculos/{espetaculo}/ingressos/gerar', [IngressoController::class, 'gerar']);
     Route::post('ingressos/{ingresso}/vender', [IngressoController::class, 'vender']);
