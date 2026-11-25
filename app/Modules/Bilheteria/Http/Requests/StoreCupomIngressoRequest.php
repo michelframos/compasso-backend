@@ -18,7 +18,8 @@ class StoreCupomIngressoRequest extends FormRequest
             'codigo' => ['required', 'string', 'max:50'],
             'tipo' => ['required', 'in:percentual,valor_fixo'],
             'valor' => ['required', 'numeric', 'min:0'],
-            'id_espetaculo' => ['nullable', InstituicaoContext::existsRule('espetaculos')],
+            'ids_espetaculos' => ['nullable', 'array'],
+            'ids_espetaculos.*' => ['integer', InstituicaoContext::existsRule('espetaculos')],
             'ativo' => ['sometimes', 'boolean'],
             'valido_de' => ['nullable', 'date'],
             'valido_ate' => ['nullable', 'date', 'after_or_equal:valido_de'],
@@ -30,6 +31,10 @@ class StoreCupomIngressoRequest extends FormRequest
     {
         if ($this->has('codigo')) {
             $this->merge(['codigo' => strtoupper(trim((string) $this->input('codigo')))]);
+        }
+
+        if ($this->has('ids_espetaculos') && ! is_array($this->input('ids_espetaculos'))) {
+            $this->merge(['ids_espetaculos' => []]);
         }
     }
 }

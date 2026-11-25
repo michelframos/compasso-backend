@@ -18,12 +18,13 @@ class CupomIngressoController extends Controller
     {
         Gate::authorize('viewAny', CupomIngresso::class);
 
-        $query = CupomIngresso::query()->with('espetaculo');
+        $query = CupomIngresso::query()->with('espetaculos');
 
         if (request()->filled('id_espetaculo')) {
-            $query->where(function ($q) {
-                $q->whereNull('id_espetaculo')
-                    ->orWhere('id_espetaculo', (int) request('id_espetaculo'));
+            $idEspetaculo = (int) request('id_espetaculo');
+            $query->where(function ($q) use ($idEspetaculo) {
+                $q->whereDoesntHave('espetaculos')
+                    ->orWhereHas('espetaculos', fn ($sub) => $sub->where('espetaculos.id', $idEspetaculo));
             });
         }
 
@@ -40,25 +41,39 @@ class CupomIngressoController extends Controller
     {
         Gate::authorize('create', CupomIngresso::class);
 
-        $cupom = CupomIngresso::create($request->validated());
+        $dados = $request->validated();
+        $idsEspetaculos = $dados['ids_espetaculos'] ?? [];
+        unset($dados['ids_espetaculos']);
 
-        return (new CupomIngressoResource($cupom->load('espetaculo')))->response()->setStatusCode(201);
+        $cupom = CupomIngresso::create($dados);
+        $cupom->espetaculos()->sync($idsEspetaculos);
+
+        return (new CupomIngressoResource($cupom->load('espetaculos')))->response()->setStatusCode(201);
     }
 
     public function show(CupomIngresso $cupomIngresso)
     {
         Gate::authorize('view', $cupomIngresso);
 
-        return new CupomIngressoResource($cupomIngresso->load('espetaculo'));
+        return new CupomIngressoResource($cupomIngresso->load('espetaculos'));
     }
 
     public function update(UpdateCupomIngressoRequest $request, CupomIngresso $cupomIngresso)
     {
         Gate::authorize('update', $cupomIngresso);
 
-        $cupomIngresso->update($request->validated());
+        $dados = $request->validated();
+        $sincronizarEspetaculos = array_key_exists('ids_espetaculos', $dados);
+        $idsEspetaculos = $dados['ids_espetaculos'] ?? [];
+        unset($dados['ids_espetaculos']);
 
-        return new CupomIngressoResource($cupomIngresso->fresh()->load('espetaculo'));
+        $cupomIngresso->update($dados);
+
+        if ($sincronizarEspetaculos) {
+            $cupomIngresso->espetaculos()->sync($idsEspetaculos);
+        }
+
+        return new CupomIngressoResource($cupomIngresso->fresh()->load('espetaculos'));
     }
 
     public function destroy(CupomIngresso $cupomIngresso)

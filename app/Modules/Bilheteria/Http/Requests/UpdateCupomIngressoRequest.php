@@ -18,7 +18,8 @@ class UpdateCupomIngressoRequest extends FormRequest
             'codigo' => ['sometimes', 'required', 'string', 'max:50'],
             'tipo' => ['sometimes', 'required', 'in:percentual,valor_fixo'],
             'valor' => ['sometimes', 'required', 'numeric', 'min:0'],
-            'id_espetaculo' => ['nullable', InstituicaoContext::existsRule('espetaculos')],
+            'ids_espetaculos' => ['sometimes', 'nullable', 'array'],
+            'ids_espetaculos.*' => ['integer', InstituicaoContext::existsRule('espetaculos')],
             'ativo' => ['sometimes', 'boolean'],
             'valido_de' => ['nullable', 'date'],
             'valido_ate' => ['nullable', 'date', 'after_or_equal:valido_de'],
@@ -30,6 +31,10 @@ class UpdateCupomIngressoRequest extends FormRequest
     {
         if ($this->has('codigo')) {
             $this->merge(['codigo' => strtoupper(trim((string) $this->input('codigo')))]);
+        }
+
+        if ($this->has('ids_espetaculos') && ! is_array($this->input('ids_espetaculos'))) {
+            $this->merge(['ids_espetaculos' => []]);
         }
     }
 }

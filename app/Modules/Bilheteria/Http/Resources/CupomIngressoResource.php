@@ -11,7 +11,7 @@ class CupomIngressoResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'id_espetaculo' => $this->id_espetaculo,
+            'ids_espetaculos' => $this->whenLoaded('espetaculos', fn () => $this->espetaculos->pluck('id')->map(fn ($id) => (int) $id)->values()),
             'codigo' => $this->codigo,
             'tipo' => $this->tipo,
             'valor' => $this->valor,
@@ -20,10 +20,10 @@ class CupomIngressoResource extends JsonResource
             'valido_ate' => $this->valido_ate?->format('Y-m-d'),
             'uso_maximo' => $this->uso_maximo,
             'usos' => $this->usos,
-            'espetaculo' => $this->whenLoaded('espetaculo', fn () => [
-                'id' => $this->espetaculo->id,
-                'titulo' => $this->espetaculo->titulo,
-            ]),
+            'espetaculos' => $this->whenLoaded('espetaculos', fn () => $this->espetaculos->map(fn ($esp) => [
+                'id' => $esp->id,
+                'titulo' => $esp->titulo,
+            ])->values()),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

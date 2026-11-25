@@ -14,7 +14,6 @@ class CupomIngresso extends Model
 
     protected $fillable = [
         'id_instituicao',
-        'id_espetaculo',
         'codigo',
         'tipo',
         'valor',
@@ -34,9 +33,14 @@ class CupomIngresso extends Model
         'usos' => 'integer',
     ];
 
-    public function espetaculo()
+    public function espetaculos()
     {
-        return $this->belongsTo(Espetaculo::class, 'id_espetaculo');
+        return $this->belongsToMany(
+            Espetaculo::class,
+            'cupons_ingresso_espetaculos',
+            'id_cupom_ingresso',
+            'id_espetaculo'
+        );
     }
 
     public function aplicarDesconto(float $valorBase): float
@@ -54,7 +58,11 @@ class CupomIngresso extends Model
             return false;
         }
 
-        if ($this->id_espetaculo !== null && $idEspetaculo !== null && (int) $this->id_espetaculo !== $idEspetaculo) {
+        $idsEspetaculos = $this->relationLoaded('espetaculos')
+            ? $this->espetaculos->pluck('id')->map(fn ($id) => (int) $id)->all()
+            : $this->espetaculos()->pluck('espetaculos.id')->map(fn ($id) => (int) $id)->all();
+
+        if (count($idsEspetaculos) > 0 && $idEspetaculo !== null && ! in_array($idEspetaculo, $idsEspetaculos, true)) {
             return false;
         }
 

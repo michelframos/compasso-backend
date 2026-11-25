@@ -157,13 +157,13 @@ class BilheteriaIngressosTest extends TestCase
         ]));
 
         $this->naInstituicao($this->instituicao, function () use ($espetaculo) {
-            CupomIngresso::create([
+            $cupom = CupomIngresso::create([
                 'codigo' => 'PROMO10',
                 'tipo' => 'percentual',
                 'valor' => 10,
                 'ativo' => true,
-                'id_espetaculo' => $espetaculo->id,
             ]);
+            $cupom->espetaculos()->sync([$espetaculo->id]);
         });
 
         $this->comoUsuario($secretaria, $this->instituicao)
