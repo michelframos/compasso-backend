@@ -16,6 +16,12 @@ class PlatformSettings
 
     public const EMAIL_CADASTRO_CORPO = 'email_cadastro_corpo';
 
+    public const BILLING_GATEWAY_URL = 'billing_gateway_url';
+
+    public const BILLING_GATEWAY_API_KEY = 'billing_gateway_api_key';
+
+    public const BILLING_ENABLED = 'billing_enabled';
+
     private const CACHE_KEY = 'platform_settings';
 
     public function get(string $chave, ?string $default = null): ?string
@@ -65,6 +71,46 @@ class PlatformSettings
         return $this->get(self::EMAIL_CADASTRO_CORPO, self::defaultEmailCadastroCorpo());
     }
 
+    public function billingGatewayUrl(): ?string
+    {
+        $url = $this->get(self::BILLING_GATEWAY_URL) ?? config('services.billing.url');
+
+        return filled($url) ? rtrim((string) $url, '/') : null;
+    }
+
+    public function billingGatewayApiKey(): ?string
+    {
+        $key = $this->get(self::BILLING_GATEWAY_API_KEY) ?? config('services.billing.api_key');
+
+        return filled($key) ? (string) $key : null;
+    }
+
+    public function billingEnabled(): bool
+    {
+        $valor = $this->get(self::BILLING_ENABLED);
+
+        if ($valor === null) {
+            $valor = config('services.billing.enabled');
+        }
+
+        return filter_var($valor, FILTER_VALIDATE_BOOLEAN);
+    }
+
+    /**
+     * Máscara da API Key: nunca expõe a chave completa (somente os 4 últimos caracteres).
+     */
+    public static function maskApiKey(?string $key): ?string
+    {
+        if (! filled($key)) {
+            return null;
+        }
+
+        $sufixo = mb_substr($key, -4);
+        $prefixo = str_starts_with($key, 'cpk_') ? 'cpk_' : '';
+
+        return $prefixo.'****…'.$sufixo;
+    }
+
     public static function defaultEmailCadastroAssunto(): string
     {
         return 'Bem-vindo(a) ao Compasso, {{escola_nome}}! Confirme seu cadastro';
@@ -83,3 +129,5 @@ class PlatformSettings
 HTML;
     }
 }
+
+

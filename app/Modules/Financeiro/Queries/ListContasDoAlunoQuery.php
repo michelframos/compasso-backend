@@ -13,7 +13,7 @@ class ListContasDoAlunoQuery
     public function build(User $user, int $idAluno, ?string $situacao, ?int $idMatricula): Builder
     {
         $query = Conta::query()
-            ->with('pagamentos')
+            ->with(['pagamentos', 'cobrancaGatewayAberta'])
             ->visivelPara($user)
             ->where('id_aluno', $idAluno)
             ->where('tipo', 'receita')
@@ -31,7 +31,7 @@ class ListContasDoAlunoQuery
     public function buildDoResponsavel(User $user, ?string $situacao): Builder
     {
         $query = Conta::query()
-            ->with(['pagamentos', 'aluno.usuario'])
+            ->with(['pagamentos', 'cobrancaGatewayAberta', 'aluno.usuario'])
             ->visivelPara($user)
             ->where('tipo', 'receita')
             ->where(fn (Builder $status) => $status->whereNull('status')->orWhere('status', '!=', 'cancelado'));

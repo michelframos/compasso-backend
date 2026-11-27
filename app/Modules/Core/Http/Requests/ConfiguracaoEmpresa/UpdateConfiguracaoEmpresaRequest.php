@@ -21,6 +21,15 @@ class UpdateConfiguracaoEmpresaRequest extends FormRequest
             $this->merge(['cnpj' => Cnpj::normalize($this->input('cnpj'))]);
         }
 
+        if ($this->has('whatsapp')) {
+            $digits = preg_replace('/\D+/', '', (string) $this->input('whatsapp'));
+            $this->merge(['whatsapp' => $digits !== '' ? $digits : null]);
+        }
+
+        if ($this->has('email_contato') && $this->input('email_contato') === '') {
+            $this->merge(['email_contato' => null]);
+        }
+
         foreach (['limite_reposicoes_periodo', 'prazo_reposicao_dias'] as $campo) {
             if ($this->has($campo) && $this->input($campo) === '') {
                 $this->merge([$campo => null]);
@@ -39,11 +48,15 @@ class UpdateConfiguracaoEmpresaRequest extends FormRequest
                 new CnpjRule,
                 Rule::unique('instituicoes', 'cnpj')->ignore(InstituicaoContext::id()),
             ],
-            'rua' => 'nullable|string|max:255',
-            'numero' => 'nullable|string|max:10',
-            'bairro' => 'nullable|string|max:255',
+            // Contato usado na subconta Asaas (com fallback no admin, se vazio).
+            'email_contato' => 'required|email|max:255',
+            'whatsapp' => ['required', 'string', 'regex:/^\d{10,11}$/'],
+            // Endereço obrigatório para provisionar subconta (Centralizador / Asaas).
+            'rua' => 'required|string|max:255',
+            'numero' => 'required|string|max:10',
+            'bairro' => 'required|string|max:255',
             'complemento' => 'nullable|string|max:255',
-            'cep' => 'nullable|string|max:10',
+            'cep' => ['required', 'string', 'max:10', 'regex:/^\d{5}-?\d{3}$/'],
             'id_estado' => 'nullable|exists:estados,id',
             'id_cidade' => 'nullable|exists:cidades,id',
             'permitir_aluno_editar_medidas' => 'sometimes|boolean',

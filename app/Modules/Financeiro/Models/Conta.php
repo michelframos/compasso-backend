@@ -56,6 +56,15 @@ class Conta extends Model
 
     public function aula_turma() { return $this->belongsTo(\App\Models\AulaTurma::class, 'id_aula_turma'); }
 
+    public function cobrancasGateway() { return $this->hasMany(ContaCobrancaGateway::class, 'id_conta'); }
+
+    public function cobrancaGatewayAberta()
+    {
+        return $this->hasOne(ContaCobrancaGateway::class, 'id_conta')
+            ->whereIn('status', ContaCobrancaGateway::STATUS_ABERTOS)
+            ->latest('id');
+    }
+
     public function scopeVisivelPara(Builder $query, User $user): Builder
     {
         return match ($user->role) {

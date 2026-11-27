@@ -6,8 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\ConfiguracaoEmpresa;
 use App\Modules\Academico\Models\Matricula;
 use App\Modules\Core\Contracts\AlunoAlvoResolverPort;
+use App\Modules\Core\Exceptions\BillingGatewayException;
+use App\Modules\Core\Http\Concerns\RespondsBillingGatewayErrors;
+use App\Modules\Financeiro\Http\Requests\CobrancaOnline\CriarCobrancaOnlineContaRequest;
 use App\Modules\Financeiro\Http\Requests\Conta\GerarCarneAlunoRequest;
 use App\Modules\Financeiro\Http\Requests\Conta\ListContasDoAlunoRequest;
+use App\Modules\Financeiro\Http\Resources\ContaCobrancaGatewayResource;
 use App\Modules\Financeiro\Http\Resources\ContaDoAlunoResource;
 use App\Modules\Financeiro\Models\ConfiguracaoPix;
 use App\Modules\Financeiro\Models\Conta;
@@ -15,6 +19,8 @@ use App\Modules\Financeiro\Models\ContaPagamento;
 use App\Modules\Financeiro\Queries\ListContasDoAlunoQuery;
 use App\Modules\Financeiro\Services\GerarCarneService;
 use App\Modules\Financeiro\Services\PixPayloadService;
+use App\Modules\Financeiro\UseCases\CobrancaOnline\CriarCobrancaOnlineContaUseCase;
+use App\Modules\Financeiro\UseCases\CobrancaOnline\ObterCobrancaOnlineContaUseCase;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
@@ -24,6 +30,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AlunoFinanceiroController extends Controller
 {
+    use RespondsBillingGatewayErrors;
+
     public function __construct(private readonly AlunoAlvoResolverPort $alunos) {}
 
     #[OA\Get(
@@ -145,6 +153,74 @@ class AlunoFinanceiroController extends Controller
                 'valor' => $gerado['valor'],
                 'descricao' => $conta->descricao,
             ],
+        ]);
+    }
+
+    #[OA\Post(
+        path: '/api/aluno/me/contas/{conta}/cobranca-online',
+        summary: 'Gerar (ou reaproveitar) a cobrança online da conta (PIX, boleto ou cartão)',
+        security: [['sanctum' => []]],
+        tags: ['Financeiro'],
+        parameters: [
+            new OA\Parameter(name: 'conta', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['method'], properties: [
+            new OA\Property(property: 'method', type: 'string', enum: ['pix', 'credit_card', 'boleto']),
+            new OA\Property(property: 'id_aluno', type: 'integer', nullable: true, description: 'Obrigatório para o responsável'),
+        ])),
+        responses: [
+            new OA\Response(response: 201, description: 'Cobrança criada', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', ref: '#/components/schemas/ContaCobrancaGatewayResource'),
+            ])),
+            new OA\Response(response: 200, description: 'Cobrança em aberto reaproveitada'),
+            new OA\Response(response: 403, description: 'Conta de outro aluno'),
+            new OA\Response(response: 422, description: 'Billing indisponível, escola sem subconta ativa, conta sem saldo ou meio inválido'),
+            new OA\Response(response: 502, description: 'Centralizador indisponível'),
+        ]
+    )]
+    public function criarCobrancaOnline(CriarCobrancaOnlineContaRequest $request, Conta $conta, CriarCobrancaOnlineContaUseCase $criar)
+    {
+        $aluno = $this->resolverAluno($request);
+        $this->garantirConta($conta, $aluno->id);
+
+        try {
+            $cobranca = $criar->execute($conta, $request->validated('method'));
+        } catch (BillingGatewayException $e) {
+            return $this->billingGatewayError($e);
+        }
+
+        return (new ContaCobrancaGatewayResource($cobranca))
+            ->response()
+            ->setStatusCode($cobranca->wasRecentlyCreated ? 201 : 200);
+    }
+
+    #[OA\Get(
+        path: '/api/aluno/me/contas/{conta}/cobranca-online',
+        summary: 'Cobrança online da conta; com sync=1 consulta o gateway',
+        security: [['sanctum' => []]],
+        tags: ['Financeiro'],
+        parameters: [
+            new OA\Parameter(name: 'conta', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'sync', in: 'query', required: false, schema: new OA\Schema(type: 'boolean')),
+            new OA\Parameter(name: 'id_aluno', in: 'query', required: false, description: 'Obrigatório para o responsável', schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Cobrança atual ou data: null', content: new OA\JsonContent(properties: [
+                new OA\Property(property: 'data', ref: '#/components/schemas/ContaCobrancaGatewayResource', nullable: true),
+            ])),
+            new OA\Response(response: 403, description: 'Conta de outro aluno'),
+            new OA\Response(response: 404, description: 'Conta não encontrada'),
+        ]
+    )]
+    public function cobrancaOnline(Request $request, Conta $conta, ObterCobrancaOnlineContaUseCase $obter)
+    {
+        $aluno = $this->resolverAluno($request);
+        $this->garantirConta($conta, $aluno->id);
+
+        $cobranca = $obter->execute($conta, $request->boolean('sync'));
+
+        return response()->json([
+            'data' => $cobranca !== null ? (new ContaCobrancaGatewayResource($cobranca))->resolve($request) : null,
         ]);
     }
 

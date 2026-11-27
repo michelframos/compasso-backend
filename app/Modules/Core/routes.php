@@ -2,12 +2,15 @@
 
 use App\Modules\Core\Http\Controllers\AssinaturaController;
 use App\Modules\Core\Http\Controllers\AuthController;
+use App\Modules\Core\Http\Controllers\BillingAssinaturaController;
+use App\Modules\Core\Http\Controllers\ConfiguracaoCobrancaOnlineController;
 use App\Modules\Core\Http\Controllers\ConfiguracaoEmpresaController;
 use App\Modules\Core\Http\Controllers\InstituicaoController;
 use App\Modules\Core\Http\Controllers\PlatformConfigController;
 use App\Modules\Core\Http\Controllers\PlatformConfiguracoesController;
 use App\Modules\Core\Http\Controllers\PlatformImpersonationController;
 use App\Modules\Core\Http\Controllers\PlatformInstituicaoController;
+use App\Modules\Core\Http\Controllers\PlatformInstituicaoSubcontaController;
 use App\Modules\Core\Http\Controllers\PlatformDepoimentoController;
 use App\Modules\Core\Http\Controllers\PlatformPlanoAssinaturaController;
 use App\Modules\Core\Http\Controllers\PlatformSiteModuloController;
@@ -79,6 +82,19 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('planos', [AssinaturaController::class, 'planos']);
             Route::get('solicitacao', [AssinaturaController::class, 'solicitacaoAtual']);
             Route::post('solicitar', [AssinaturaController::class, 'solicitar']);
+
+            Route::get('atual', [BillingAssinaturaController::class, 'atual']);
+            Route::post('checkout', [BillingAssinaturaController::class, 'checkout']);
+            Route::get('checkout/{assinaturaCobranca}', [BillingAssinaturaController::class, 'showCheckout']);
+            Route::post('cancelar', [BillingAssinaturaController::class, 'cancelar']);
+            Route::get('subconta', [BillingAssinaturaController::class, 'subconta']);
+            Route::post('subconta', [BillingAssinaturaController::class, 'provisionarSubconta']);
+            Route::put('subconta/saque', [BillingAssinaturaController::class, 'atualizarSaque']);
+        });
+
+        Route::middleware('role:admin')->prefix('configuracao-cobranca-online')->group(function () {
+            Route::get('/', [ConfiguracaoCobrancaOnlineController::class, 'show']);
+            Route::put('/', [ConfiguracaoCobrancaOnlineController::class, 'atualizar']);
         });
 
         Route::middleware('role:admin')->prefix('instituicao/modulos')->group(function () {
@@ -109,8 +125,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('config', [PlatformConfigController::class, 'show']);
         Route::get('configuracoes', [PlatformConfiguracoesController::class, 'show']);
         Route::put('configuracoes', [PlatformConfiguracoesController::class, 'update']);
+        Route::post('configuracoes/billing/testar', [PlatformConfiguracoesController::class, 'testBilling']);
         Route::get('instituicoes/{instituicao}/usuarios', [PlatformInstituicaoController::class, 'usuarios']);
         Route::post('instituicoes/{instituicao}/impersonate', [PlatformInstituicaoController::class, 'impersonate']);
+        Route::post('instituicoes/{instituicao}/subconta', [PlatformInstituicaoSubcontaController::class, 'store']);
         Route::apiResource('instituicoes', PlatformInstituicaoController::class)
             ->parameters(['instituicoes' => 'instituicao']);
         Route::apiResource('planos', PlatformPlanoAssinaturaController::class);

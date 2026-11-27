@@ -3,6 +3,7 @@
 namespace App\Modules\Financeiro\Http\Resources;
 
 use App\Modules\Financeiro\Models\Conta;
+use App\Modules\Financeiro\Services\CobrancaOnlineDisponibilidade;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use OpenApi\Attributes as OA;
@@ -29,6 +30,11 @@ use OpenApi\Attributes as OA;
             new OA\Property(property: 'data_pagamento', type: 'string', format: 'date'),
             new OA\Property(property: 'forma_pagamento', type: 'string', example: 'pix'),
         ])),
+        new OA\Property(property: 'cobranca_online', type: 'object', properties: [
+            new OA\Property(property: 'disponivel', type: 'boolean', description: 'Billing ativo, subconta ativa, meios configurados e conta com saldo'),
+            new OA\Property(property: 'meios', type: 'array', items: new OA\Items(type: 'string', enum: ['pix', 'credit_card', 'boleto'])),
+            new OA\Property(property: 'cobranca_aberta', ref: '#/components/schemas/ContaCobrancaGatewayResource', nullable: true),
+        ]),
     ]
 )]
 class ContaDoAlunoResource extends JsonResource
@@ -41,13 +47,16 @@ class ContaDoAlunoResource extends JsonResource
         /** @var Conta $conta */
         $conta = $this->resource;
         $pago = round((float) $conta->pagamentos->sum('valor_pago'), 2);
+        $saldo = round((float) $conta->valor - $pago, 2);
+        $online = app(CobrancaOnlineDisponibilidade::class)->paraConta($conta, $saldo);
+        $aberta = $conta->relationLoaded('cobrancaGatewayAberta') ? $conta->cobrancaGatewayAberta : null;
 
         return [
             'id' => $conta->id,
             'id_matricula' => $conta->id_matricula,
             'descricao' => $conta->descricao,
             'valor' => (float) $conta->valor,
-            'saldo_devedor' => round((float) $conta->valor - $pago, 2),
+            'saldo_devedor' => $saldo,
             'data_vencimento' => $conta->data_vencimento?->toDateString(),
             'status' => $conta->status,
             'situacao' => $this->situacao($conta),
@@ -65,6 +74,13 @@ class ContaDoAlunoResource extends JsonResource
                     'forma_pagamento' => $pagamento->forma_pagamento,
                 ])
                 ->all(),
+            'cobranca_online' => [
+                'disponivel' => $online['disponivel'],
+                'meios' => $online['meios'],
+                'cobranca_aberta' => $aberta !== null
+                    ? (new ContaCobrancaGatewayResource($aberta))->resolve($request)
+                    : null,
+            ],
         ];
     }
 

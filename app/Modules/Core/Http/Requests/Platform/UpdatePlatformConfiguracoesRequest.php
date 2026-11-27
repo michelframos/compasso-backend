@@ -20,6 +20,9 @@ class UpdatePlatformConfiguracoesRequest extends FormRequest
             'default_trial_days' => ['sometimes', 'required', 'integer', 'min:1', 'max:3650'],
             'email_cadastro_assunto' => ['sometimes', 'required', 'string', 'max:255'],
             'email_cadastro_corpo' => ['sometimes', 'required', 'string', 'max:65000'],
+            'billing_gateway_url' => ['sometimes', 'nullable', 'url', 'max:255'],
+            'billing_enabled' => ['sometimes', 'boolean'],
+            'billing_gateway_api_key' => ['sometimes', 'nullable', 'string', 'max:255'],
         ];
     }
 
@@ -32,6 +35,9 @@ class UpdatePlatformConfiguracoesRequest extends FormRequest
             'default_trial_days' => 'dias de gratuidade',
             'email_cadastro_assunto' => 'assunto do e-mail',
             'email_cadastro_corpo' => 'corpo do e-mail',
+            'billing_gateway_url' => 'URL do centralizador',
+            'billing_enabled' => 'billing online',
+            'billing_gateway_api_key' => 'API Key do centralizador',
         ];
     }
 }

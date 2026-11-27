@@ -122,6 +122,12 @@ class CoreInstituicaoScopedTest extends TestCase
             ->putJson('/api/configuracao-empresa', [
                 'nome_fantasia' => 'Depois',
                 'cnpj' => $this->cnpjValido('escola-update'),
+                'email_contato' => 'contato@escola-update.test',
+                'whatsapp' => '11999990000',
+                'rua' => 'Rua Teste',
+                'numero' => '100',
+                'bairro' => 'Centro',
+                'cep' => '01001-000',
             ])
             ->assertOk()
             ->assertJsonPath('nome_fantasia', 'Depois');
@@ -148,11 +154,21 @@ class CoreInstituicaoScopedTest extends TestCase
         $admin = $this->criarAdminNaInstituicao($instituicao, 'admin-freq@test.com');
         $token = $this->autenticarComo($admin, $instituicao);
 
+        $endereco = [
+            'email_contato' => 'contato@escola-freq.test',
+            'whatsapp' => '11988887777',
+            'rua' => 'Rua Freq',
+            'numero' => '10',
+            'bairro' => 'Centro',
+            'cep' => '01001-000',
+        ];
+
         $this->withToken($token)
             ->withHeader('X-Tenant-Slug', 'escola-freq')
             ->putJson('/api/configuracao-empresa', [
                 'nome_fantasia' => 'Escola Freq',
                 'cnpj' => $this->cnpjValido('escola-freq'),
+                ...$endereco,
                 'frequencia_minima' => 101,
             ])
             ->assertStatus(422)
@@ -163,6 +179,7 @@ class CoreInstituicaoScopedTest extends TestCase
             ->putJson('/api/configuracao-empresa', [
                 'nome_fantasia' => 'Escola Freq',
                 'cnpj' => $this->cnpjValido('escola-freq'),
+                ...$endereco,
                 'frequencia_minima' => 85,
             ])
             ->assertOk()

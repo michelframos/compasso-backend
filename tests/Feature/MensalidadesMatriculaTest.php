@@ -311,6 +311,8 @@ class MensalidadesMatriculaTest extends TestCase
                 'nome_fantasia' => 'Escola Teste Mensalidade',
                 'razao_social' => 'Escola Teste LTDA',
                 'cnpj' => '11222333000181',
+                'email_contato' => 'contato@escola-mensalidade.test',
+                'whatsapp' => '11977776666',
                 'rua' => 'Rua A',
                 'numero' => '100',
                 'bairro' => 'Centro',

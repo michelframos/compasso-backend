@@ -28,6 +28,18 @@ class Instituicao extends Model
 
     public const ASSINATURA_CANCELED = 'canceled';
 
+    public const SUBCONTA_NONE = 'none';
+
+    public const SUBCONTA_PENDING = 'pending';
+
+    public const SUBCONTA_ACTIVE = 'active';
+
+    public const SUBCONTA_FAILED = 'failed';
+
+    public const MEIOS_COBRANCA_DISPONIVEIS = ['pix', 'credit_card', 'boleto'];
+
+    public const MEIOS_COBRANCA_PADRAO = ['pix', 'boleto'];
+
     protected $table = 'instituicoes';
 
     protected $fillable = [
@@ -35,6 +47,8 @@ class Instituicao extends Model
         'nome_fantasia',
         'razao_social',
         'cnpj',
+        'email_contato',
+        'whatsapp',
         'rua',
         'numero',
         'bairro',
@@ -59,6 +73,10 @@ class Instituicao extends Model
         'dia_vencimento_mensalidade',
         'quantidade_parcelas_mensalidade',
         'inicio_parcelas_mensalidade',
+        'gateway_subaccount_uuid',
+        'gateway_subaccount_status',
+        'gateway_subaccount_last_error',
+        'meios_cobranca_online',
     ];
 
     protected $hidden = [
@@ -82,12 +100,34 @@ class Instituicao extends Model
             'frequencia_minima' => 'decimal:2',
             'dia_vencimento_mensalidade' => 'integer',
             'quantidade_parcelas_mensalidade' => 'integer',
+            'meios_cobranca_online' => 'array',
         ];
     }
 
     public function aguardandoAtivacao(): bool
     {
         return $this->codigo_ativacao !== null && $this->ativada_em === null;
+    }
+
+    /**
+     * Meios de cobrança online habilitados pela escola (default: PIX e boleto).
+     *
+     * @return list<string>
+     */
+    public function meiosCobrancaOnline(): array
+    {
+        $meios = $this->meios_cobranca_online;
+
+        if (! is_array($meios) || $meios === []) {
+            return self::MEIOS_COBRANCA_PADRAO;
+        }
+
+        return array_values($meios);
+    }
+
+    public function subcontaAtiva(): bool
+    {
+        return $this->gateway_subaccount_status === self::SUBCONTA_ACTIVE;
     }
 
     protected function cnpj(): Attribute

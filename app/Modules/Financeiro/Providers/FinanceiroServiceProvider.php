@@ -22,6 +22,7 @@ use App\Modules\Financeiro\Models\AlunoContrato;
 use App\Modules\Financeiro\Models\Conta;
 use App\Modules\Financeiro\Policies\AlunoContratoPolicy;
 use App\Modules\Financeiro\Policies\ContaPolicy;
+use App\Modules\Financeiro\Services\CobrancaOnlineDisponibilidade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -38,6 +39,7 @@ class FinanceiroServiceProvider extends ServiceProvider
         $this->app->bind(GerarPagamentoProfessorPort::class, GerarPagamentoProfessorAdapter::class);
         $this->app->bind(CobrancaAulaPort::class, CobrancaAulaAdapter::class);
         $this->app->bind(ResumoFinanceiroAlunoPort::class, ResumoFinanceiroAlunoAdapter::class);
+        $this->app->scoped(CobrancaOnlineDisponibilidade::class);
     }
 
     public function boot(): void

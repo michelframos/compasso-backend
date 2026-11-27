@@ -39,6 +39,14 @@ return [
         'url' => env('WHATSAPP_API_URL', 'http://localhost:8088'),
     ],
 
+    'billing' => [
+        'url' => env('BILLING_GATEWAY_URL'),
+        'api_key' => env('BILLING_GATEWAY_API_KEY'),
+        'enabled' => env('BILLING_ENABLED', false),
+        'timeout' => (int) env('BILLING_GATEWAY_TIMEOUT', 15),
+        'subconta_income_value' => (float) env('BILLING_SUBACCOUNT_INCOME_VALUE', 25000),
+    ],
+
     'cep' => [
         'driver' => env('CEP_PROVIDER', 'viacep'),
         'viacep_url' => env('VIACEP_URL', 'https://viacep.com.br/ws'),

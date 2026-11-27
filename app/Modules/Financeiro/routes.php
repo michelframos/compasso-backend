@@ -5,6 +5,7 @@ use App\Modules\Financeiro\Http\Controllers\AlunoFinanceiroController;
 use App\Modules\Financeiro\Http\Controllers\CarneController;
 use App\Modules\Financeiro\Http\Controllers\CategoriaContaController;
 use App\Modules\Financeiro\Http\Controllers\ConfiguracaoPixController;
+use App\Modules\Financeiro\Http\Controllers\ContaCobrancaOnlineController;
 use App\Modules\Financeiro\Http\Controllers\ContaController;
 use App\Modules\Financeiro\Http\Controllers\ContaPagamentoController;
 use App\Modules\Financeiro\Http\Controllers\ContratoController;
@@ -23,6 +24,8 @@ Route::middleware(['auth:sanctum', 'ensure.instituicao.membership', 'ensure.plan
         Route::apiResource('contas', ContaController::class)->only(['store', 'update', 'destroy']);
         Route::post('contas/pagamentos/lote', [ContaPagamentoController::class, 'storeEmLote']);
         Route::post('contas/{conta}/pagamentos', [ContaPagamentoController::class, 'store']);
+        Route::post('contas/{conta}/cobranca-online', [ContaCobrancaOnlineController::class, 'store']);
+        Route::post('contas/{conta}/cobranca-online/cancelar', [ContaCobrancaOnlineController::class, 'cancelar']);
         Route::delete('pagamentos/{pagamento}', [ContaPagamentoController::class, 'destroy']);
 
         Route::post('carne/gerar', [CarneController::class, 'gerar']);
@@ -32,6 +35,7 @@ Route::middleware(['auth:sanctum', 'ensure.instituicao.membership', 'ensure.plan
 
     Route::apiResource('contas', ContaController::class)->only(['index', 'show']);
     Route::get('contas/{conta}/pagamentos', [ContaPagamentoController::class, 'index']);
+    Route::get('contas/{conta}/cobranca-online', [ContaCobrancaOnlineController::class, 'show']);
 
     Route::middleware(['ensure.senha.atualizada', 'role:aluno,responsavel', 'ensure.perfil.aluno'])
         ->prefix('aluno/me')
@@ -39,6 +43,8 @@ Route::middleware(['auth:sanctum', 'ensure.instituicao.membership', 'ensure.plan
             Route::get('contas/consolidado', [AlunoFinanceiroController::class, 'consolidado']);
             Route::get('contas', [AlunoFinanceiroController::class, 'contas']);
             Route::get('contas/{conta}/pix', [AlunoFinanceiroController::class, 'pix']);
+            Route::post('contas/{conta}/cobranca-online', [AlunoFinanceiroController::class, 'criarCobrancaOnline']);
+            Route::get('contas/{conta}/cobranca-online', [AlunoFinanceiroController::class, 'cobrancaOnline']);
             Route::post('carne', [AlunoFinanceiroController::class, 'carne']);
             Route::get('pagamentos/{pagamento}/recibo', [AlunoFinanceiroController::class, 'recibo']);
         });
